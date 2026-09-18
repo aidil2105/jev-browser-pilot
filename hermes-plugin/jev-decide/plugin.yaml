@@ -1,0 +1,8 @@
+name: jev-decide
+version: 0.1.0
+description: "Hand one candidate list to the jev-browser-pilot decision policy and get exactly one typed answer back: a pick from the list, done, stuck, escalate, or error. One decision costs about $0.0003 and 300 ms instead of a full agent turn, and the escalation path is explicit rather than a guess. Runs the jev-pilot CLI, so the library owns the policy, the prompts and the trace, and this plugin stays a wrapper."
+author: aidil2105
+kind: standalone
+homepage: https://github.com/aidil2105/jev-browser-pilot
+provides_tools:
+  - jev_decide

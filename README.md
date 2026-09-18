@@ -290,6 +290,15 @@ Opt-in by construction, because this drives a real browser on a real machine.
 The rails are checked by the loop, not requested of the model, so a provider that hallucinates a
 better plan cannot walk around them.
 
+## Using it from an agent
+
+Your agent already observes and acts. This library is the step in between, and there is a Hermes
+plugin for it at `hermes-plugin/jev-decide/`: one tool, `jev_decide`, that takes a candidate list
+you built and returns one typed answer, for about $0.0003 and 300 ms instead of a full agent turn.
+`escalate` comes back with the pick attached, `error` comes back with a null pick and a reason, and
+nothing is ever executed by the tool. See `docs/hermes-tool.md` for the candidate-enumeration
+snippet and the outcome table.
+
 ## Benchmarks over frozen states
 
 A live comparison mostly measures who got luckier with perception. `bench` removes that variable:
@@ -412,6 +421,7 @@ yourself.
 | the frozen-state bench | the table above, `examples/bench-calculator.json`, three repeats per chooser |
 | the same tasks against a second chooser | the table above: 6 of 6 tasks reached against 4 of 6, two passes each |
 | the manual live lane runs on a GitHub runner | `live-jev.yml`, dispatched by hand with the API key as a repository secret: three hops, 277 / 124 / 127 ms, $0.00086 |
+| an agent can borrow the decision step | `hermes plugins doctor jev-decide` passes, and a live agent run called `jev_decide` through ordinary tool dispatch, receiving `act` with a pick. `docs/hermes-tool.md` |
 
 Still not verified, and said plainly rather than buried: a success rate over a task set larger
 than three, and any comparison that would support a claim about judgment rather than reliability
