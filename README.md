@@ -337,8 +337,11 @@ jev-pilot run --start https://en.wikipedia.org/wiki/Calculator \
 
 | chooser | tasks reached | per-decision latency | per-decision cost |
 |---|---|---|---|
-| `jev` | 6 of 6 | 302 to 939 ms | $0.00027 to $0.00030 |
-| a free open-weights chat model | 4 of 6 | 2,733 to 52,000 ms | unmetered, free route |
+| `jev` | 6 of 6 | 302 to 982 ms | $0.00027 to $0.00030 |
+| a free open-weights chat model | 4 of 6 | 2,733 to 51,665 ms | unmetered, free route |
+
+The four run summaries behind this table are committed under `docs/evidence/live-comparison/`, so
+the numbers can be read back instead of taken on trust.
 
 What this does and does not say. Whenever the chat model answered it picked the same element Jev
 picked, every time, so the two agreed on all four decisions it completed. Its two failures were
@@ -347,6 +350,23 @@ from a relay that answered with an empty response where Jev answered in 302 ms a
 confidence. Read it as a reliability and latency result under this harness, not as a ranking of
 two models' judgment. Three tasks, one site, two passes: enough to show the shape of the
 difference, not enough to generalise past it.
+
+It also shows the exit codes doing their job: the arm that missed a task exited 1, the arm that
+reached all three exited 0.
+
+## Exit codes
+
+Running `run` from a script is the point, so the codes are part of the interface.
+
+| code | meaning |
+|---|---|
+| 0 | every task reached its postcondition |
+| 1 | at least one task was not reached: the postcondition failed, the chooser never answered, or the episode stopped `blocked` because the surface left the declared hosts |
+| 2 | a usage or configuration problem: an unknown chooser, an unreadable fixture, a missing credential |
+
+Confidence never turns a miss into a success. An episode where every decision was confident and
+the postcondition still failed exits 1, and the run prints which task it was.
+
 ## Traces and reports
 
 Every step is recorded: the exact state sent, the ids offered, the answer, the confidence, the
@@ -421,8 +441,8 @@ rather than in this file.
 - `src/jev_pilot/`: the library (loop, policy, perception, safety, traces, bench, CLI, surfaces).
 - `tests/`: 147 credential-free tests, plus one `live` test that drives a real headless Chrome.
 - `docs/`: architecture, perception, decisions, cookbook, findings, parity with the wider ecosystem
-  effort, publishing, and a decision log that records which calls were made by a model and which by
-  hand.
+  effort, publishing, evidence for the quoted runs, and a decision log that records which calls were
+  made by a model and which by hand.
 - `examples/`: a task file, a reference bench fixture, and runnable examples.
 - `.github/workflows/`: CI (credential-free), the release lane, and an optional manual live lane.
 

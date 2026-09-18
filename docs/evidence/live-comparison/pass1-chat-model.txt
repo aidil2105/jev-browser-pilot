@@ -1,0 +1,18 @@
+jev-browser-pilot 0.1.0
+surface: browser | chooser: openai model=cl/deepseek/deepseek-v4-flash base_url=<local OpenAI-compatible relay>
+safety: hosts=[en.wikipedia.org] actions=['click'] typing=off dry_run=False max_steps=12
+session: chrome pid=1336 port=52443 profile=jev-pilot-profile-52443
+
+=== goal: open the article about the slide rule
+  step 1: act pick=100 a 'slide rule' 6449ms
+  pass: url-contains:Slide_rule ('Slide_rule' in 'https://en.wikipedia.org/wiki/Slide_rule')
+  result: reached=True stopped=reached steps=1 median=6449ms cost=$0.000000
+
+=== goal: open the article about William Oughtred, the inventor of the slide rule
+  step 1: act pick=14 a 'William Oughtred' 10331ms
+  pass: url-contains:William_Oughtred ('William_Oughtred' in 'https://en.wikipedia.org/wiki/William_Oughtred')
+  result: reached=True stopped=reached steps=1 median=10331ms cost=$0.000000
+
+=== goal: open the article about Richard Delamain, the rival who claimed priority for the slide rule
+  fail: url-contains:Delamain ('Delamain' in 'https://en.wikipedia.org/wiki/William_Oughtred')
+  result: reached=False stopped=error steps=1 median=51665ms cost=$0.000000

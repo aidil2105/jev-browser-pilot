@@ -1,0 +1,19 @@
+jev-browser-pilot 0.1.0
+surface: browser | chooser: jev model=jev-latest
+safety: hosts=[en.wikipedia.org] actions=['click'] typing=off dry_run=False max_steps=12
+session: chrome pid=16228 port=65046 profile=jev-pilot-profile-65046
+
+=== goal: open the article about the slide rule
+  step 1: act conf=0.94 pick=100 a 'slide rule' 939ms
+  pass: url-contains:Slide_rule ('Slide_rule' in 'https://en.wikipedia.org/wiki/Slide_rule')
+  result: reached=True stopped=reached steps=1 median=939ms cost=$0.000270
+
+=== goal: open the article about William Oughtred, the inventor of the slide rule
+  step 1: act conf=0.99 pick=14 a 'William Oughtred' 310ms
+  pass: url-contains:William_Oughtred ('William_Oughtred' in 'https://en.wikipedia.org/wiki/William_Oughtred')
+  result: reached=True stopped=reached steps=1 median=310ms cost=$0.000286
+
+=== goal: open the article about Richard Delamain, the rival who claimed priority for the slide rule
+  step 1: act conf=0.49 pick=88 a 'Richard Delamain' 302ms
+  pass: url-contains:Delamain ('Delamain' in 'https://en.wikipedia.org/wiki/Richard_Delamaine')
+  result: reached=True stopped=reached steps=1 median=302ms cost=$0.000301
