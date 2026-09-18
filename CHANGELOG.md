@@ -2,6 +2,15 @@
 
 All notable changes to this project. Format follows Keep a Changelog; versioning follows SemVer.
 
+## [0.2.1] - 2026-09-18
+
+### Changed
+
+- Documentation only, no code change: the description PyPI shows for a release is the README inside
+  the uploaded artifact, so the citation fix that landed after `0.2.0` was tagged (the endpoint
+  failures now point at `docs/evidence/bench-decisions/endpoint-failures.txt`, with the free tier's
+  daily cap named) only reaches the project page with a new version. This is that version.
+
 ## [0.2.0] - 2026-09-18
 
 ### Added
