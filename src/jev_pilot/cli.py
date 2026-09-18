@@ -62,25 +62,59 @@ def _build_chooser(args) -> Chooser:
     return build_chooser(args.provider, **kwargs)
 
 
-def _parse_chooser_specs(specs: Sequence[str]) -> Dict[str, Chooser]:
+def _shared_chooser_kwargs(args) -> Dict[str, Any]:
+    """Endpoint flags that apply to every chooser on the command line."""
+    shared: Dict[str, Any] = {}
+    if getattr(args, "base_url", None):
+        shared["base_url"] = args.base_url
+    if getattr(args, "api_key_env", None):
+        import os
+        key = os.environ.get(args.api_key_env)
+        if not key:
+            raise ProviderUnavailable(f"{args.api_key_env} is not set")
+        shared["api_key"] = key
+    if getattr(args, "max_tokens", None):
+        shared["max_tokens"] = args.max_tokens
+    if getattr(args, "input_price", None) is not None:
+        shared["input_price_per_mtok"] = args.input_price
+    if getattr(args, "output_price", None) is not None:
+        shared["output_price_per_mtok"] = args.output_price
+    return shared
+
+
+def _parse_chooser_specs(specs: Sequence[str], args=None) -> Dict[str, Chooser]:
+    shared = _shared_chooser_kwargs(args) if args is not None else {}
     choosers: Dict[str, Chooser] = {}
     for spec in specs:
         kind, _, model = spec.partition(":")
         label = spec if model else kind
-        kwargs: Dict[str, Any] = {"model": model} if model else {}
+        if kind in ("mock", "keyword", "scripted"):
+            kwargs: Dict[str, Any] = {}
+        elif kind == "jev":
+            kwargs = {k: v for k, v in shared.items() if k == "api_key"}
+        else:
+            kwargs = dict(shared)
+        if model:
+            kwargs["model"] = model
         choosers[label] = build_chooser(kind, **kwargs)
     return choosers
 
 
 def _safety_for(args, start_url: Optional[str]) -> SafetyPolicy:
     hosts = list(args.allow_host or [])
-    if not hosts and start_url:
+    if not hosts and start_url and args.surface != "desktop":
         host = host_of(start_url)
         if host:
             hosts.append(host)
-    policy = SafetyPolicy.for_hosts(hosts, allow_typing=args.allow_typing,
-                                    dry_run=args.dry_run, max_steps=args.max_steps_cap)
-    return policy
+    common = dict(allow_typing=args.allow_typing, dry_run=args.dry_run,
+                  max_steps=args.max_steps_cap)
+    if hosts:
+        return SafetyPolicy.for_hosts(hosts, **common)
+    if args.surface == "desktop":
+        # A native window has no URL, so there is no host to declare. The action
+        # allow list, the typing switch and the step cap still apply.
+        return SafetyPolicy(allow_hosts=frozenset(), **common)
+    raise SafetyError("no hosts declared: pass --start or --allow-host")
 
 
 def _make_surface(args, start_url: str, safety: SafetyPolicy, rules: DomRules):
@@ -265,7 +299,7 @@ def cmd_run(args) -> int:
 def cmd_bench(args) -> int:
     try:
         fixtures = load_fixtures(args.fixtures)
-        choosers = _parse_chooser_specs(args.chooser)
+        choosers = _parse_chooser_specs(args.chooser, args)
     except (ValueError, OSError, json.JSONDecodeError, ProviderUnavailable) as exc:
         print(f"bench setup failed: {exc}", file=sys.stderr)
         return EXIT_ERROR

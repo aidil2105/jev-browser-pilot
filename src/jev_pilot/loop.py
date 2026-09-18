@@ -153,6 +153,8 @@ def run_episode(
         if dry_run:
             step.action = "dry_run"
             episode.stopped = "dry_run"
+            if on_step is not None:
+                on_step(step, episode)
             break
 
         if safety is not None:

@@ -151,6 +151,26 @@ with no external assets, so it can be attached to a bug report or a PR.
 - **The desktop surface is experimental.** It drives a native window through a UI Automation tree
   via cua-driver; UIA quality varies by application.
 
+## What has been verified
+
+Every claim here was produced by a run, on this checkout, and the command is quoted with it.
+
+| claim | evidence |
+|---|---|
+| the loop, policy and surfaces work | `pytest`: 130 passed, no credentials, no network |
+| the browser surface drives a real browser | `pytest -m live`: launches headless Chrome against a local fixture and reaches its postcondition |
+| the package installs and runs as a package | `uv build` then install the wheel into a fresh venv, with no extras: `jev-pilot selftest` prints PASS |
+| Python 3.9 and 3.13 | `pytest` passes on 3.9.24 and 3.13.9 as well as 3.11 |
+| a live site, real model, through the CLI | `jev-pilot run --start https://en.wikipedia.org/wiki/Calculator --task-file examples/wikipedia-chain.json --provider jev --headless`: 3/3 hops, 1454 / 297 / 295 ms, $0.00086 |
+| the same chain through the library API | `python examples/browser_chain.py --provider jev --headless`: 3/3 hops reached |
+| the OpenAI-compatible provider against a real endpoint | `jev-pilot decide --provider openai --model cl/deepseek/deepseek-v4-flash --base-url http://127.0.0.1:20128/v1`: correct pick in 4357 ms |
+| a second chooser on the frozen fixtures | `jev-pilot bench --fixtures tests/fixtures/calc-frozen.json --chooser mock --chooser openai:cl/deepseek/deepseek-v4-flash`: mock 1/4, the chat model 3/4 with one unanswered call |
+| the desktop surface | `jev-pilot run --surface desktop --aumid Microsoft.WindowsCalculator_8wekyb3d8bbwe!App --provider jev --dry-run`: attached to a live UI Automation tree, Jev picked `Button 'Five'` at 0.96 confidence in 889 ms, nothing clicked |
+
+Not yet verified, and the docs say so where it matters: a full attach-and-click cycle on the desktop
+surface (only the dry run has run), task-set success rates, and a head-to-head loop comparison
+against a frontier model.
+
 ## Status
 
 `building`. Started 2026-09-18. Last touched 2026-09-18.
@@ -158,7 +178,7 @@ with no external assets, so it can be attached to a bug report or a PR.
 ## Where things live
 
 - `src/jev_pilot/`: the library (loop, policy, perception, safety, traces, bench, CLI, surfaces).
-- `tests/`: 127 credential-free tests, plus one `live` test that drives a real headless Chrome.
+- `tests/`: 130 credential-free tests, plus one `live` test that drives a real headless Chrome.
 - `docs/`: architecture, perception, decisions, cookbook, findings, and parity with the wider
   ecosystem effort.
 - `examples/`: a task file and runnable examples.
@@ -174,7 +194,13 @@ with no external assets, so it can be attached to a bug report or a PR.
 ## Log
 
 - 2026-09-18: `0.1.0` built. Live verification: three Wikipedia hops through the CLI with Jev
-  (1454 / 297 / 295 ms, confidences 0.95 / 0.99 / 0.47, $0.00086), and a credential-free CI suite
-  of 127 tests plus one live browser test. Safety gap found and fixed during the live run: a click
-  on an allowed host that navigated off-site was only caught at the next action, so episodes now
-  stop with `blocked` immediately after any observation outside the declared hosts.
+  (1454 / 297 / 295 ms, confidences 0.95 / 0.99 / 0.47, $0.00086), the same chain through the
+  library API, a real OpenAI-compatible endpoint, a wheel install into a fresh venv, Python 3.9 and
+  3.13 runs, and the first desktop attach (Jev chose `Button 'Five'` at 0.96 on a live UIA tree,
+  dry run). Suite: 130 tests plus one live browser test.
+- 2026-09-18: three defects found by those runs and fixed, each with a test: a click that navigated
+  off-site was only caught before the next action (episodes now stop with `blocked` on any
+  observation outside the declared hosts), `bench` ignored `--base-url`/`--api-key-env` so the
+  OpenAI-compatible chooser could not be built there at all, and the desktop surface could not
+  start through the CLI because a host-derived safety policy has nothing to derive from a native
+  window.

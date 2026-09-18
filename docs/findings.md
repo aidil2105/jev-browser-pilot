@@ -97,5 +97,28 @@ decision here costs 1.4k to 2.4k input tokens, so roughly $0.0003 per step, or a
 - No head-to-head against a frontier model driving the same live tasks through this harness. The
   bench isolates the decision; the loop comparison is not run yet.
 - No measurement of success rate over a task set, only over hops whose target was visible.
-- No desktop numbers from this repo yet. The calculator results above come from the earlier pilot
-  that this library was extracted from.
+- No attach-and-click cycle on a real desktop window yet. One dry run has been made: a live UI
+  Automation tree from Calculator, Jev choosing `Button 'Five'` at 0.96 confidence in 889 ms.
+  The calculator numbers in section 1 come from the earlier pilot this library was extracted from.
+
+## 8. A second real chooser on the frozen fixtures
+
+The shipped fixture (`tests/fixtures/calc-frozen.json`, four states) run through two choosers:
+
+```
+jev-pilot bench --fixtures tests/fixtures/calc-frozen.json \
+  --chooser mock --chooser openai:cl/deepseek/deepseek-v4-flash \
+  --base-url http://127.0.0.1:20128/v1 --api-key-env NINE_ROUTER_API_KEY
+```
+
+| chooser | correct | accuracy | answered | median | range |
+|---|---|---|---|---|---|
+| mock (keyword overlap) | 1/4 | 25% | 4/4 | 0 ms | 0 to 0 ms |
+| a mid-tier chat model | 3/4 | 75% | 3/4 | 3991 ms | 3575 to 22067 ms |
+
+Read this as a sanity check on the fixture and the harness rather than as a model comparison: four
+states is far too small to rank anything, the keyword chooser is deliberately naive (it fails the
+states whose answer is not in the goal's words), and the chat model's single unanswered call is a
+transport failure, not a wrong answer. What it does show is that the same frozen states can be
+replayed across choosers with honest accounting of coverage next to accuracy.
+

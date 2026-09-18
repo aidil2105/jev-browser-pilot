@@ -73,3 +73,14 @@ def test_step_budget_is_capped():
 def test_describe_names_the_box():
     text = SafetyPolicy.for_hosts(["example.test"], dry_run=True).describe()
     assert "example.test" in text and "dry_run=True" in text
+
+
+def test_a_hostless_policy_still_allows_a_click_on_a_native_window():
+    """Desktop surfaces have no URL, so the host list is empty by design; the action
+    allow list is what protects them."""
+    policy = SafetyPolicy(allow_actions=("click",))
+    policy.check_action("click")  # no url: nothing to check against
+    with pytest.raises(SafetyError):
+        policy.check_action("click", "https://evil.test/")  # a url appears: still refused
+    with pytest.raises(SafetyError):
+        policy.check_action("type_text")

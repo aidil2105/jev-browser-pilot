@@ -94,6 +94,29 @@ def test_bench_writes_json_and_markdown(tmp_path):
     assert md.read_text(encoding="utf-8").startswith("| chooser |")
 
 
+def test_bench_passes_endpoint_flags_to_the_openai_chooser():
+    """Regression: --base-url/--api-key-env were ignored by bench, so the openai chooser
+    could not be built there at all. Port 9 refuses the connection, which is enough to
+    prove the chooser was constructed and called."""
+    result = run_cli("bench", "--fixtures", str(FIXTURES / "calc-frozen.json"),
+                     "--chooser", "openai:local-model",
+                     "--base-url", "http://127.0.0.1:9/v1",
+                     "--api-key-env", "JEV_PILOT_TEST_KEY",
+                     env_extra={"JEV_PILOT_TEST_KEY": "not-a-real-key"})
+    assert result.returncode == 0, result.stderr
+    assert "openai:local-model" in result.stdout
+    assert "no answer" in result.stderr  # every call failed, and the note says so
+
+
+def test_bench_reports_a_missing_key_env_variable():
+    result = run_cli("bench", "--fixtures", str(FIXTURES / "calc-frozen.json"),
+                     "--chooser", "openai:local-model",
+                     "--base-url", "https://api.example.com/v1",
+                     "--api-key-env", "DEFINITELY_NOT_SET_ANYWHERE")
+    assert result.returncode == 2
+    assert "DEFINITELY_NOT_SET_ANYWHERE is not set" in result.stderr
+
+
 def test_report_renders_from_a_trace(tmp_path):
     trace = tmp_path / "trace.jsonl"
     trace.write_text(json.dumps({
