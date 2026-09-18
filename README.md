@@ -178,7 +178,9 @@ loop comparison against a frontier model.
 
 ## Status
 
-`building`. Started 2026-09-18. Last touched 2026-09-18.
+`building`, released as `0.1.0` (alpha). Started 2026-09-18. What changed is in `CHANGELOG.md`; what
+has been verified, and what has not, is in `docs/findings.md`. Roadmap items live as issues rather
+than in this file.
 
 ## Where things live
 
@@ -189,31 +191,3 @@ loop comparison against a frontier model.
 - `examples/`: a task file and runnable examples.
 - `.github/workflows/`: CI (credential-free) and an optional manual live lane.
 
-## Next actions
-
-- [ ] Publish `0.1.0` on GitHub (public) and tag it.
-- [ ] Add a second desktop fixture to turn the experimental surface into a tested one.
-- [ ] Record a reference bench with a Jev arm and two open-model arms in one file.
-- [ ] Wire the `decide` endpoint into a Hermes tool so a full agent can borrow the step.
-
-## Log
-
-- 2026-09-18: **the desktop surface completed a real click cycle.** Four clicks on a live
-  Calculator window (Five, Plus, Three, Equals at 0.98 to 1.00 confidence), postcondition read
-  from the window's own text, reached, exit code 0, four decisions, median 300 ms, $0.000247. The
-  first attempt failed on my own bug: the surface's `text` was the window title, so a
-  `text-contains:` check on the display inspected the word "Calculator". Fixed, and covered by
-  tests. Suite: 137 tests plus one live browser test. The next-work choice, the name question and
-  the desktop-honesty question were put to a decision model in one call; the verdicts, their
-  confidences and the one question it declined to answer are in `docs/decision-log.md`.
-- 2026-09-18: `0.1.0` built. Live verification: three Wikipedia hops through the CLI with Jev
-  (1454 / 297 / 295 ms, confidences 0.95 / 0.99 / 0.47, $0.00086), the same chain through the
-  library API, a real OpenAI-compatible endpoint, a wheel install into a fresh venv, Python 3.9 and
-  3.13 runs, and the first desktop attach (Jev chose `Button 'Five'` at 0.96 on a live UIA tree,
-  dry run). Suite: 130 tests plus one live browser test.
-- 2026-09-18: three defects found by those runs and fixed, each with a test: a click that navigated
-  off-site was only caught before the next action (episodes now stop with `blocked` on any
-  observation outside the declared hosts), `bench` ignored `--base-url`/`--api-key-env` so the
-  OpenAI-compatible chooser could not be built there at all, and the desktop surface could not
-  start through the CLI because a host-derived safety policy has nothing to derive from a native
-  window.
