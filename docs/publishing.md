@@ -47,6 +47,11 @@ things that are easy to get wrong later:
 - **Later releases need nothing new on PyPI.** A new tag, a version bump in `pyproject.toml` and a
   published GitHub release are enough; the trusted publisher entry already covers them. PyPI
   refuses a version that already exists, so bump every time.
+- **A resolver may still offer the previous version right after an upload.** uv, for instance,
+  caches index pages: `uv pip install jev-browser-pilot` returned the older release for a couple of
+  minutes while `python -m pip` resolved the new one, and `uv pip install --refresh` agreed with
+  pip. Check with a cache busting request (`curl` with a random query string) before believing a
+  release failed to land.
 
 ## Versioning
 
