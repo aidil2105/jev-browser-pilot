@@ -1,8 +1,7 @@
 # Publishing
 
-The package is not on PyPI yet, which is why the README installs from the repository. This is
-what publishing takes, and it is deliberately set up so that no API token is ever stored in the
-repository or pasted into a chat.
+The project is on PyPI: `pip install jev-browser-pilot` resolves, and `0.1.1` was the first version
+uploaded. This is how the lane works, and what it takes to set it up again from scratch.
 
 ## One-time setup on PyPI (about two minutes, needs the account)
 
@@ -39,12 +38,15 @@ The token goes in the shell environment for that one command, not into a file in
 
 ## After the first publish
 
-- `pip install jev-browser-pilot` starts working, so the README's install section should be
-  shortened back to the plain form. The plain form is deliberately not there yet: instructions
-  that do not resolve are worse than longer ones that do.
-- The `pypi` environment URL in the workflow gives the release a link on the Actions tab.
-- Later releases only need a new tag and a published GitHub release. The PyPI publisher entry
-  already trusts this repository and workflow.
+Done on 2026-09-18: `0.1.1` was uploaded by this workflow through the pending publisher above. Two
+things that are easy to get wrong later:
+
+- **The description on PyPI is the README inside the uploaded artifact.** A documentation change
+  does not reach the project page until a new version is uploaded. `0.1.1` was published with an
+  install section that said the package was not on PyPI, which is why `0.1.2` exists.
+- **Later releases need nothing new on PyPI.** A new tag, a version bump in `pyproject.toml` and a
+  published GitHub release are enough; the trusted publisher entry already covers them. PyPI
+  refuses a version that already exists, so bump every time.
 
 ## Versioning
 

@@ -22,12 +22,9 @@ milliseconds, and an audit trail that shows exactly what the model was shown at 
 
 ## Install
 
-Not on PyPI yet, so `pip install jev-browser-pilot` does not resolve. Use the repository:
-
 ```
-pip install "git+https://github.com/aidil2105/jev-browser-pilot"
-# with the Jev provider (Python 3.10 or newer):
-pip install "jev-browser-pilot[jev] @ git+https://github.com/aidil2105/jev-browser-pilot"
+pip install jev-browser-pilot              # core: browser surface over CDP
+pip install "jev-browser-pilot[jev]"       # + the TypeSafe Jev provider (Python 3.10+)
 ```
 
 Or from a clone, which is what the commands below assume:
@@ -405,6 +402,7 @@ yourself.
 | the loop, policy and surfaces work | `pytest`: 147 passed, no credentials, no network |
 | the browser surface drives a real browser | `pytest -m live`: launches headless Chrome against a local fixture page and reaches its postcondition |
 | the package installs and runs as a package | `uv build`, then install the wheel into a fresh venv with no extras: `jev-pilot selftest` prints PASS |
+| the release lane publishes | `0.1.1` was uploaded by `.github/workflows/publish.yml` through PyPI trusted publishing, and `pip install jev-browser-pilot` in a clean venv pulls it: `jev-pilot version` reports 0.1.1 and `selftest` prints PASS |
 | CI on three platforms | GitHub Actions on `main`: 3.9, 3.11 on Ubuntu, Windows and macOS, 3.13, and the live browser job, all green |
 | a live site, real model, through the CLI | the transcript above: three hops, 1454 / 297 / 295 ms, $0.00086 |
 | the same chain through the library API | `python examples/browser_chain.py --provider jev --headless`: 3 of 3 hops reached |

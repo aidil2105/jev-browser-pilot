@@ -2,6 +2,20 @@
 
 All notable changes to this project. Format follows Keep a Changelog; versioning follows SemVer.
 
+## [0.1.2] - 2026-09-18
+
+### Fixed
+
+- The install section on the project page said the package was not on PyPI, on PyPI. The
+  description of a release is the README inside the uploaded artifact, so a documentation change
+  only reaches pypi.org with a new version. This is that version.
+
+### Added
+
+- The first release on PyPI. `0.1.1` was uploaded by `.github/workflows/publish.yml` through
+  trusted publishing, and `pip install jev-browser-pilot` in a clean environment pulls it
+  (`jev-pilot version` reports 0.1.1, `selftest` prints PASS).
+
 ## [0.1.1] - 2026-09-18
 
 ### Added
