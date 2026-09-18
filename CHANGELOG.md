@@ -2,6 +2,15 @@
 
 All notable changes to this project. Format follows Keep a Changelog; versioning follows SemVer.
 
+## [0.2.4] - 2026-09-18
+
+### Changed
+
+- Documentation only, no code change: the README no longer quotes an exact test count. It had drifted
+  seven times in one day (127, 130, 137, 139, 147, 171, 172) and a stale number is a wrong claim, so
+  it is now a floor ("over 170 credential-free tests") and the changelog keeps the exact figure per
+  release, where a date makes it unambiguous.
+
 ## [0.2.3] - 2026-09-18
 
 ### Fixed

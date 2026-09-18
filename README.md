@@ -460,7 +460,7 @@ yourself.
 
 | claim | evidence |
 |---|---|
-| the loop, policy and surfaces work | `pytest`: 171 passed, no credentials, no network |
+| the loop, policy and surfaces work | `pytest`: over 170 credential-free tests, no credentials, no network |
 | the browser surface drives a real browser | `pytest -m live`: launches headless Chrome against a local fixture page and reaches its postcondition |
 | the package installs and runs as a package | `uv build`, then install the wheel into a fresh venv with no extras: `jev-pilot selftest` prints PASS |
 | the release lane publishes | `0.1.1` was uploaded by `.github/workflows/publish.yml` through PyPI trusted publishing, and `pip install jev-browser-pilot` in a clean venv pulls it: `jev-pilot version` reports 0.1.1 and `selftest` prints PASS |
@@ -501,7 +501,7 @@ rather than in this file.
 ## Where things live
 
 - `src/jev_pilot/`: the library (loop, policy, perception, safety, traces, bench, CLI, surfaces).
-- `tests/`: 171 credential-free tests, plus one `live` test that drives a real headless Chrome.
+- `tests/`: over 170 credential-free tests, plus one `live` test that drives a real headless Chrome. The count is a floor on purpose: an exact number in a README drifts with every new test, and a stale number is a wrong claim.
 - `docs/`: architecture, perception, decisions, cookbook, findings, parity with the wider ecosystem
   effort, publishing, evidence for the quoted runs, and a decision log that records which calls were
   made by a model and which by hand.

@@ -16,7 +16,7 @@ python -m venv .venv
 ## The test contract
 
 ```
-pytest                       # 171 tests, no credentials, no network
+pytest                       # the credential-free suite: no credentials, no network, no credentials, no network
 pytest -m live               # also drives a real headless Chrome against a local fixture
 ```
 
