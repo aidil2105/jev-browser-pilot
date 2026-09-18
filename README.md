@@ -45,6 +45,10 @@ Chromium or Edge you already have. The Jev provider needs Python 3.10 or newer b
 vendor SDK does; on 3.9 the core, the OpenAI-compatible provider and the mock chooser all work
 and the Jev provider says so plainly instead of failing to install.
 
+Releases are built and uploaded by `.github/workflows/publish.yml` when a GitHub release is
+published, using PyPI's trusted publishing rather than a stored token; `docs/publishing.md` has
+the one-time PyPI setup and the local fallback.
+
 ## Quickstart
 
 Three commands, in this order. The first one needs nothing at all.
@@ -317,6 +321,32 @@ jev-pilot bench --fixtures examples/bench-calculator.json --chooser jev --repeat
                 --markdown bench.md --out bench.json
 ```
 
+### The same tasks, two choosers, twice each
+
+The frozen states above isolate a single decision. This runs the whole loop instead: one task
+file, one start page, the same postconditions, one arm per chooser, two passes, headless Chrome.
+
+```
+jev-pilot run --start https://en.wikipedia.org/wiki/Calculator \
+  --task-file examples/wikipedia-chain.json --provider jev --headless
+
+jev-pilot run --start https://en.wikipedia.org/wiki/Calculator \
+  --task-file examples/wikipedia-chain.json --provider openai \
+  --model <a free open-weights chat model> --base-url <an OpenAI-compatible relay> --headless
+```
+
+| chooser | tasks reached | per-decision latency | per-decision cost |
+|---|---|---|---|
+| `jev` | 6 of 6 | 302 to 939 ms | $0.00027 to $0.00030 |
+| a free open-weights chat model | 4 of 6 | 2,733 to 52,000 ms | unmetered, free route |
+
+What this does and does not say. Whenever the chat model answered it picked the same element Jev
+picked, every time, so the two agreed on all four decisions it completed. Its two failures were
+not wrong picks: they were calls that never returned, both on the same task, at 30 s and 52 s,
+from a relay that answered with an empty response where Jev answered in 302 ms at 0.49
+confidence. Read it as a reliability and latency result under this harness, not as a ranking of
+two models' judgment. Three tasks, one site, two passes: enough to show the shape of the
+difference, not enough to generalise past it.
 ## Traces and reports
 
 Every step is recorded: the exact state sent, the ids offered, the answer, the confidence, the
@@ -352,7 +382,7 @@ yourself.
 
 | claim | evidence |
 |---|---|
-| the loop, policy and surfaces work | `pytest`: 139 passed, no credentials, no network |
+| the loop, policy and surfaces work | `pytest`: 147 passed, no credentials, no network |
 | the browser surface drives a real browser | `pytest -m live`: launches headless Chrome against a local fixture page and reaches its postcondition |
 | the package installs and runs as a package | `uv build`, then install the wheel into a fresh venv with no extras: `jev-pilot selftest` prints PASS |
 | CI on three platforms | GitHub Actions on `main`: 3.9, 3.11 on Ubuntu, Windows and macOS, 3.13, and the live browser job, all green |
@@ -360,10 +390,14 @@ yourself.
 | the same chain through the library API | `python examples/browser_chain.py --provider jev --headless`: 3 of 3 hops reached |
 | a real OpenAI-compatible endpoint | `jev-pilot decide --provider openai --model <a chat model> --file examples/decide-request.json` against a local OpenAI-compatible relay: correct pick in 4357 ms |
 | the desktop surface, clicking | `jev-pilot run --surface desktop --aumid Microsoft.WindowsCalculator_8wekyb3d8bbwe!App --provider jev --steps 6 --verify text-contains:8`: four real clicks, display verified from the window's own text, exit code 0, $0.000247 |
+| the desktop path is covered without a window | `tests/test_desktop_loop.py` drives a scripted driver through a full episode: observe, pick, click by element token, verify from the window's own text |
 | the frozen-state bench | the table above, `examples/bench-calculator.json`, three repeats per chooser |
+| the same tasks against a second chooser | the table above: 6 of 6 tasks reached against 4 of 6, two passes each |
 
-Not yet verified, and said plainly rather than buried: a success rate over a task set, and a
-head-to-head loop comparison against a frontier model driving the same live tasks.
+Still not verified, and said plainly rather than buried: a success rate over a task set larger
+than three, and any comparison that would support a claim about judgment rather than reliability
+(the note above explains why the loop comparison does not support one). The desktop surface has
+had one real episode, in one application, on one platform; issue #2 is that gap.
 
 ## Requirements
 
@@ -384,11 +418,12 @@ rather than in this file.
 ## Where things live
 
 - `src/jev_pilot/`: the library (loop, policy, perception, safety, traces, bench, CLI, surfaces).
-- `tests/`: 139 credential-free tests, plus one `live` test that drives a real headless Chrome.
+- `tests/`: 147 credential-free tests, plus one `live` test that drives a real headless Chrome.
 - `docs/`: architecture, perception, decisions, cookbook, findings, parity with the wider ecosystem
-  effort, and a decision log that records which calls were made by a model and which by hand.
+  effort, publishing, and a decision log that records which calls were made by a model and which by
+  hand.
 - `examples/`: a task file, a reference bench fixture, and runnable examples.
-- `.github/workflows/`: CI (credential-free) and an optional manual live lane.
+- `.github/workflows/`: CI (credential-free), the release lane, and an optional manual live lane.
 
 ## Contributing
 

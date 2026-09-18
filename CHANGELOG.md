@@ -2,6 +2,38 @@
 
 All notable changes to this project. Format follows Keep a Changelog; versioning follows SemVer.
 
+## [0.1.1] - 2026-09-18
+
+### Added
+
+- `docs/publishing.md` and `.github/workflows/publish.yml`: releases are built, installed from
+  their own artifacts and uploaded to PyPI through trusted publishing, with no token in the repo.
+- `tests/test_desktop_loop.py`: the desktop surface driven by a scripted driver, so the whole
+  desktop path (observe, pick, click by element token, verify from the window's own text) runs in
+  the credential-free suite instead of only by hand.
+- A live two-chooser loop comparison in the README: the same three tasks, the same postconditions,
+  two passes per chooser, with the coverage difference stated next to the latency difference.
+- `examples/bench-calculator.json`: the reference fixture behind the README's benchmark table, so
+  those numbers can be reproduced from the repository instead of quoted.
+- 147 credential-free tests (139 before this release).
+
+### Changed
+
+- The window text of a native surface now includes item roles (`listitem`, `treeitem`,
+  `dataitem`), so a file list, a tree or a table is readable by a postcondition. Menu chrome is
+  still excluded.
+
+### Fixed during development
+
+- `__version__` was a literal, so a wheel built as 0.1.1 still reported `0.1.0` and every trace
+  recorded the wrong version. It now reads the installed metadata, and a test fails loudly when the
+  installed metadata and `pyproject.toml` disagree.
+- `pip install jev-browser-pilot` was in the README while the package was not on PyPI. The install
+  section now gives the git form, and both forms were run anonymously in clean environments.
+- `bench` wrote its `--out` and `--markdown` files after printing, so piping it into `head` closed
+  stdout, killed the process mid-print and left the artifacts unwritten. Artifacts are written
+  first, and a closed pipe exits cleanly instead of dumping a traceback.
+
 ## [0.1.0] - 2026-09-18
 
 First release.

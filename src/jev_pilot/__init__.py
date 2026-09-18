@@ -20,7 +20,25 @@ from jev_pilot.serialize import SerializerOptions, build_state
 from jev_pilot.types import Decision, Episode, Option, Step
 from jev_pilot.verify import VerificationContext, parse_postcondition, verify_all
 
-__version__ = "0.1.0"
+def _installed_version() -> str:
+    """The version of the package that is actually installed.
+
+    It was a literal, which drifted from `pyproject.toml` the first time the version was bumped:
+    a wheel built as 0.1.1 still reported 0.1.0. Reading the installed metadata keeps the two in
+    step, and the source-tree fallback is obviously not a release.
+    """
+    try:
+        from importlib.metadata import PackageNotFoundError, version as _version
+
+        try:
+            return _version("jev-browser-pilot")
+        except PackageNotFoundError:
+            return "0.0.0+source"
+    except ImportError:  # pragma: no cover - importlib.metadata is present on 3.8+
+        return "0.0.0+source"
+
+
+__version__ = _installed_version()
 
 __all__ = [
     "Chooser",

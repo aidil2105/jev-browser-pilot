@@ -1,0 +1,67 @@
+name: publish
+
+# Publishing is a release action: it runs when a GitHub release is published, or by hand.
+# No API token lives in this repository. The publish job authenticates to PyPI with the
+# workflow's own OIDC identity (trusted publishing), which requires a one-time setup on
+# PyPI: see docs/publishing.md.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build and check the artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
+
+      - name: build the wheel and the sdist
+        run: uv build
+
+      - name: the wheel installs and runs on its own
+        run: |
+          uv venv /tmp/check --python 3.11
+          uv pip install --python /tmp/check/bin/python dist/*.whl
+          /tmp/check/bin/jev-pilot version
+          /tmp/check/bin/jev-pilot selftest
+
+      - name: the sdist carries everything the wheel needs
+        run: |
+          uv venv /tmp/sdist --python 3.11
+          uv pip install --python /tmp/sdist/bin/python dist/*.tar.gz
+          /tmp/sdist/bin/jev-pilot selftest
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/jev-browser-pilot/
+    permissions:
+      id-token: write        # the trusted-publishing handshake, no token needed
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
+
+      - name: publish
+        run: uv publish --trusted-publishing always

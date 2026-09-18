@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -119,6 +120,29 @@ def test_bench_artifacts_survive_a_closed_pipe(tmp_path):
     assert json.loads(out.read_text(encoding="utf-8"))["cases"] == 4
     assert "Traceback" not in stderr  # a closed pipe is not an error
     assert returncode == 0, f"exit={returncode} stderr={stderr[:300]}"
+
+
+def test_the_reported_version_is_the_installed_one():
+    """Regression: __version__ was a literal, so a 0.1.1 wheel reported 0.1.0."""
+    from jev_pilot import __version__
+
+    if __version__ == "0.0.0+source":
+        pytest.skip("run against a checkout that was never installed")
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    declared = re.search(r'^version = "([^"]+)"', pyproject, re.M)
+    assert declared is not None
+    assert __version__ == declared.group(1), (
+        f"installed metadata says {__version__} while pyproject declares {declared.group(1)}: "
+        "reinstall the editable package after a version bump"
+    )
+
+
+def test_version_command_reports_the_same_version():
+    from jev_pilot import __version__
+
+    result = run_cli("version")
+    assert result.returncode == 0
+    assert __version__ in result.stdout
 
 
 def test_endpoint_flags_are_not_handed_to_the_jev_chooser(monkeypatch):

@@ -168,26 +168,36 @@ class DesktopPilot(Surface):
         self._latest = snapshot
         return snapshot
 
-    @staticmethod
-    def _text_of(elements: List[Dict[str, Any]]) -> str:
-        """What this window says, best effort.
+    # Roles that carry content worth showing: text, and the item roles a file list, a tree or a
+    # table uses. Menu chrome is deliberately excluded, since it is not what a task is about.
+    TEXT_ROLES = ("text", "listitem", "treeitem", "dataitem")
 
-        A native window has no document text, so the surface reports its own text labels
-        joined together. Labels that contain a digit lead, because they are usually the
-        display or a field value, which is what a postcondition is normally about. A
-        single label was wrong: it returned the window title, so a `text-contains:` check
-        on the calculator's display silently inspected the word "Calculator" instead.
-        """
+    @classmethod
+    def _content_labels(cls, elements: List[Dict[str, Any]]) -> List[str]:
         labels: List[str] = []
         seen = set()
         for el in elements:
-            if "text" not in str(el.get("role") or "").lower():
+            role = str(el.get("role") or "").lower()
+            if not any(marker in role for marker in cls.TEXT_ROLES):
                 continue
             label = " ".join(str(el.get("label") or "").split())
             if not label or label.lower() in seen:
                 continue
             seen.add(label.lower())
             labels.append(label)
+        return labels
+
+    @staticmethod
+    def _text_of(elements: List[Dict[str, Any]]) -> str:
+        """What this window says, best effort.
+
+        A native window has no document text, so the surface reports its own content labels
+        joined together. Labels that contain a digit lead, because they are usually the display
+        or a field value, which is what a postcondition is normally about. A single label was
+        wrong: it returned the window title, so a `text-contains:` check on the calculator's
+        display silently inspected the word "Calculator".
+        """
+        labels = DesktopPilot._content_labels(elements)
         if not labels:
             return ""
         valued = [l for l in labels if any(ch.isdigit() for ch in l)]
