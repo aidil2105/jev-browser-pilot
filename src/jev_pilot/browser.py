@@ -67,6 +67,16 @@ def find_chrome(explicit: Optional[str] = None) -> str:
     )
 
 
+def extra_chrome_args() -> list:
+    """Extra Chrome flags from `JEV_PILOT_CHROME_ARGS` (space separated).
+
+    Containers and CI need `--no-sandbox --disable-dev-shm-usage`; a library that cannot be
+    told to pass those cannot run its own browser tests anywhere but a desktop.
+    """
+    raw = os.environ.get("JEV_PILOT_CHROME_ARGS", "")
+    return [part for part in raw.split() if part]
+
+
 def free_port() -> int:
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
@@ -165,6 +175,7 @@ class BrowserPilot(Surface):
         ]
         if self.headless:
             args.insert(1, "--headless=new")
+        args[1:1] = extra_chrome_args()
         self._process = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self._wait_for_cdp()
         self._tab = Tab(self._page_ws_url())

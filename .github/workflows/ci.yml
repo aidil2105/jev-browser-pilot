@@ -54,4 +54,7 @@ jobs:
       - name: Install Chrome
         uses: browser-actions/setup-chrome@v1
       - name: Run the live loop against a local fixture page
+        env:
+          # GitHub's runners need these; the browser surface takes extra flags from here.
+          JEV_PILOT_CHROME_ARGS: --no-sandbox --disable-dev-shm-usage
         run: pytest -m live -q

@@ -52,6 +52,15 @@ def test_probe_js_shape():
     assert probe_js("main") == '(() => !!document.querySelector("main"))()'
 
 
+def test_extra_chrome_args_parses_the_env(monkeypatch):
+    from jev_pilot.browser import extra_chrome_args
+
+    monkeypatch.delenv("JEV_PILOT_CHROME_ARGS", raising=False)
+    assert extra_chrome_args() == []
+    monkeypatch.setenv("JEV_PILOT_CHROME_ARGS", "--no-sandbox  --disable-dev-shm-usage")
+    assert extra_chrome_args() == ["--no-sandbox", "--disable-dev-shm-usage"]
+
+
 @needs_chrome
 def test_safety_is_checked_before_a_browser_is_launched():
     pilot = BrowserPilot("https://example.test/", safety=SafetyPolicy.for_hosts(["other.test"]))
