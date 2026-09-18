@@ -58,3 +58,16 @@ jobs:
           # GitHub's runners need these; the browser surface takes extra flags from here.
           JEV_PILOT_CHROME_ARGS: --no-sandbox --disable-dev-shm-usage
         run: pytest -m live -q
+
+  description-sync:
+    name: README and the published description
+    runs-on: ubuntu-latest
+    # A warning, not a gate: documentation work should not be blocked, but a silent divergence
+    # between the repository and the PyPI page is worth an annotation on every push.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Does the README differ from the newest release without a version bump?
+        run: bash scripts/check-description-sync.sh

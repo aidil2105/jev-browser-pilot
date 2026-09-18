@@ -43,7 +43,12 @@ things that are easy to get wrong later:
 
 - **The description on PyPI is the README inside the uploaded artifact.** A documentation change
   does not reach the project page until a new version is uploaded. `0.1.1` was published with an
-  install section that said the package was not on PyPI, which is why `0.1.2` exists.
+  install section that said the package was not on PyPI, and `0.2.1` exists only because a citation
+  fix landed after `0.2.0` was tagged, which is why `0.1.2` exists as well.
+- **Check it rather than assume it.** `python scripts/verify-pypi-description.py <version>` fetches
+  the published description and diffs it against the README in that version's own commit, line
+  endings aside. CI also carries a warning job (`description-sync`) that fires when README.md changes
+  without a version bump, so the divergence is labelled instead of discovered later.
 - **Later releases need nothing new on PyPI.** A new tag, a version bump in `pyproject.toml` and a
   published GitHub release are enough; the trusted publisher entry already covers them. PyPI
   refuses a version that already exists, so bump every time.
