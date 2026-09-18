@@ -2,6 +2,16 @@
 
 All notable changes to this project. Format follows Keep a Changelog; versioning follows SemVer.
 
+## [0.2.3] - 2026-09-18
+
+### Fixed
+
+- On Python 3.9 the message for a missing vendor SDK advised `pip install 'jev-browser-pilot[jev]'`,
+  and that extra's SDK dependency is marker-gated to 3.10+, so following the advice changed nothing
+  and landed the user back on the same message. It now names the version requirement, says which
+  interpreter to use instead, and points at the `mock` and `openai` providers, with a test covering
+  both branches. Found by reading the string on a real 3.9 install rather than from the test suite.
+
 ## [0.2.2] - 2026-09-18
 
 ### Changed

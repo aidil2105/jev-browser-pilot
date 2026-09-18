@@ -11,6 +11,7 @@ never written to a trace, and never echoed by the CLI.
 from __future__ import annotations
 
 import os
+import sys
 from typing import Dict, Optional, Sequence
 
 from jev_pilot.policy import build_criteria, build_instructions
@@ -19,6 +20,27 @@ from jev_pilot.types import Option
 
 DEFAULT_MODEL = None  # the SDK's alias (jev-latest); the response reports the real id
 DEFAULT_PRICE_PER_MTOK = 0.042  # USD per million input tokens; output is free
+
+
+def _sdk_missing_message(version_info=None) -> str:
+    """The remedy for a missing vendor SDK depends on the interpreter.
+
+    `typesafe-sdk` is marker-gated to Python 3.10+ in this package's metadata, so on 3.9 the obvious
+    advice is a loop: installing `[jev]` deliberately skips the SDK there and the user lands back on
+    the same message. Say what will actually work instead.
+
+    The version is a parameter so the branch is testable without patching `sys.version_info`, which
+    makes `json`-shaped fakes and hides the very thing under test.
+    """
+    info = version_info if version_info is not None else sys.version_info
+    version = f"{info[0]}.{info[1]}"
+    if (info[0], info[1]) < (3, 10):
+        return (
+            f"typesafe-sdk is not installed, and it needs Python 3.10 or newer while this is "
+            f"Python {version}. Use a newer interpreter for the jev provider, or use the mock or "
+            f"openai provider here"
+        )
+    return "typesafe-sdk is not installed; run: pip install 'jev-browser-pilot[jev]'"
 
 
 class JevChooser(Chooser):
@@ -52,9 +74,7 @@ class JevChooser(Chooser):
             try:
                 from typesafe_sdk import TypeSafeClient
             except ImportError as exc:  # pragma: no cover - depends on extras
-                raise ProviderUnavailable(
-                    "typesafe-sdk is not installed; run: pip install 'jev-browser-pilot[jev]'"
-                ) from exc
+                raise ProviderUnavailable(_sdk_missing_message()) from exc
             self._client = TypeSafeClient(api_key=self.api_key)
         return self._client
 
@@ -63,9 +83,7 @@ class JevChooser(Chooser):
         try:
             from typesafe_sdk import Choice
         except ImportError as exc:  # pragma: no cover
-            raise ProviderUnavailable(
-                "typesafe-sdk is not installed; run: pip install 'jev-browser-pilot[jev]'"
-            ) from exc
+            raise ProviderUnavailable(_sdk_missing_message()) from exc
 
         try:
             criteria = build_criteria(options, detail=self.criteria_detail)

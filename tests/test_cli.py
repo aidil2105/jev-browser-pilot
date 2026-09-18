@@ -145,6 +145,21 @@ def test_version_command_reports_the_same_version():
     assert __version__ in result.stdout
 
 
+def test_the_missing_sdk_message_does_not_recommend_a_loop_on_39():
+    """Regression: on 3.9 the message advised installing the [jev] extra, whose SDK dependency is
+    marker-gated to 3.10+, so following the advice changed nothing and landed back on the message."""
+    from jev_pilot.providers.jev import _sdk_missing_message
+
+    old = _sdk_missing_message((3, 9, 25))
+    assert "3.10 or newer" in old and "Python 3.9" in old
+    assert "pip install 'jev-browser-pilot[jev]'" not in old
+    assert "mock or openai" in old
+
+    new = _sdk_missing_message((3, 11, 9))
+    assert "pip install 'jev-browser-pilot[jev]'" in new
+    assert "3.10 or newer" not in new
+
+
 def test_endpoint_flags_are_not_handed_to_the_jev_chooser(monkeypatch):
     """Regression: --api-key-env (documented for the OpenAI path) leaked into the Jev chooser, so
     it authenticated with the wrong key and every call returned no answer."""
