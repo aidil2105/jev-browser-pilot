@@ -2,6 +2,15 @@
 
 All notable changes to this project. Format follows Keep a Changelog; versioning follows SemVer.
 
+## [0.2.2] - 2026-09-18
+
+### Changed
+
+- Documentation only, no code change: the provider table required a TypeSafe key without saying where
+  one comes from. It now names the dashboard as the source, says that `jev` is early access by
+  waitlist, and points at `mock` and `openai` as the account-free paths, which is what a stranger
+  reading the default configuration needs to know.
+
 ## [0.2.1] - 2026-09-18
 
 ### Changed

@@ -239,6 +239,14 @@ task done. One question, one answer, one decision.
 | `mock` | deterministic keyword overlap | credential-free, for tests, docs and offline development |
 | `scripted` | a fixed sequence of answers | assertions in tests |
 
+**Where a TypeSafe key comes from.** `jev` is the default chooser and it is early access: at launch
+(September 2026) TypeSafe opened early access and is bringing developers in from a waitlist, so
+[typesafe.ai](https://typesafe.ai) is the way to ask for access. Once you are in, the key is in the
+dashboard (`docs.typesafe.ai/introduction/quickstart`), and the client reads it from
+`TYPESAFE_API_KEY`. Until then `mock` and `openai` need no TypeSafe account at all, which is enough
+for the quickstart, the tests and the bench: the CLI exits 2 with a message naming the variable and
+the alternatives if you ask for `jev` without a key.
+
 A chooser is one method, so adding yours does not touch the loop, the safety rails or the
 verification:
 

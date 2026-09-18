@@ -25,7 +25,12 @@ cannot invent an id.
    command (for example `JEV_PILOT_BIN=C:/path/to/venv/Scripts/jev-pilot.exe`). The tool resolves
    it before falling back to `PATH`.
 
-2. Copy the plugin directory into place and enable it:
+2. A key is needed only for the `jev` chooser, which is early access by waitlist
+   ([typesafe.ai](https://typesafe.ai)); the key lives in the dashboard and the tool reads it from
+   `TYPESAFE_API_KEY`, including from `$HERMES_HOME/.env` when the agent process has not exported it.
+   `provider: "mock"` or any OpenAI-compatible endpoint needs no TypeSafe account.
+
+3. Copy the plugin directory into place and enable it:
 
    ```
    cp -r hermes-plugin/jev-decide "$HERMES_HOME/plugins/jev-decide"
@@ -36,7 +41,7 @@ cannot invent an id.
    Enabling does not grant tool-override rights, and this plugin does not ask for them: it adds a
    tool, it does not intercept yours.
 
-3. Confirm the model can see it. The tool registers only when the CLI resolves, so a machine
+4. Confirm the model can see it. The tool registers only when the CLI resolves, so a machine
    without the library shows no dead tool:
 
    ```
