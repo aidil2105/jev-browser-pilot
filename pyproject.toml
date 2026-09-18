@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jev-browser-pilot"
+version = "0.1.0"
+description = "A bounded, cheap decision layer for browser and desktop automation: a System One model picks the next step, your code owns observation, content, actuation and verification."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Aidil Zafri", email = "aidilzafri56@gmail.com" }]
+keywords = ["computer-use", "browser-automation", "agents", "decision-model", "jev", "typesafe", "cdp"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development :: Testing",
+  "Topic :: Internet :: WWW/HTTP :: Browsers",
+]
+dependencies = [
+  "websocket-client>=1.6",
+]
+
+[project.optional-dependencies]
+jev = ["typesafe-sdk>=0.6"]
+dev = ["pytest>=7", "pytest-cov"]
+
+[project.urls]
+Homepage = "https://github.com/aidil2105/jev-browser-pilot"
+Issues = "https://github.com/aidil2105/jev-browser-pilot/issues"
+
+[project.scripts]
+jev-pilot = "jev_pilot.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "live: needs a real browser and/or a live model endpoint (deselected in CI)",
+]
+addopts = "-q -m 'not live'"
+
+[tool.ruff]
+line-length = 110
+target-version = "py39"

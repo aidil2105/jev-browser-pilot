@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "goal": "open the article about the slide rule",
+      "verify": ["url-contains:Slide_rule"],
+      "steps": 2
+    },
+    {
+      "goal": "open the article about William Oughtred, the inventor of the slide rule",
+      "verify": ["url-contains:William_Oughtred"],
+      "steps": 2
+    },
+    {
+      "goal": "open the article about Richard Delamain, the rival who claimed priority for the slide rule",
+      "verify": ["url-contains:Delamain"],
+      "steps": 2
+    }
+  ]
+}

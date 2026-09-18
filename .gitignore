@@ -1,0 +1,27 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Environments
+.venv/
+venv/
+
+# Local secrets and scratch
+.env
+scratch/
+temp/
+traces/
+*.jsonl
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Browser scratch profiles created by the browser surface
+.jev-pilot-profile-*/
+jev-pilot-profile-*/

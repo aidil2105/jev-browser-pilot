@@ -1,0 +1,62 @@
+{
+  "source": "Frozen from a real Windows Calculator window (standard mode) captured through a UI Automation tree on 2026-09-18. The element table is verbatim; the DISPLAY and history fields reconstruct the state a live loop would have had at that point.",
+  "cases": [
+    {
+      "name": "calc-start",
+      "category": "calculator",
+      "goal": "compute 5 + 3, stopping when the display shows the answer",
+      "state": "WINDOW: Calculator\nDISPLAY: 'Display is 0'\nACTIONS ALREADY TAKEN THIS EPISODE: (none)\nCANDIDATE ACTIONS (answer with one id from this list):\n[13] Button 'Percent'\n[16] Button 'Backspace'\n[19] Button 'Square root'\n[20] Button 'Divide by'\n[21] Button 'Multiply by'\n[22] Button 'Minus'\n[23] Button 'Plus'\n[24] Button 'Equals'\n[25] Button 'Zero'\n[26] Button 'One'\n[27] Button 'Two'\n[28] Button 'Three'\n[29] Button 'Four'\n[30] Button 'Five'\n[31] Button 'Six'",
+      "options": [
+        {"id": "13", "label": "Button 'Percent'"},
+        {"id": "19", "label": "Button 'Square root'"},
+        {"id": "23", "label": "Button 'Plus'"},
+        {"id": "24", "label": "Button 'Equals'"},
+        {"id": "26", "label": "Button 'One'"},
+        {"id": "28", "label": "Button 'Three'"},
+        {"id": "30", "label": "Button 'Five'"}
+      ],
+      "expect": "Button 'Five'"
+    },
+    {
+      "name": "calc-after-plus",
+      "category": "calculator",
+      "goal": "compute 5 + 3, stopping when the display shows the answer",
+      "state": "WINDOW: Calculator\nDISPLAY: 'Display is 5'\nACTIONS ALREADY TAKEN THIS EPISODE: Five, Plus\nCANDIDATE ACTIONS (answer with one id from this list):\n[23] Button 'Plus'\n[24] Button 'Equals'\n[26] Button 'One'\n[27] Button 'Two'\n[28] Button 'Three'\n[30] Button 'Five'",
+      "options": [
+        {"id": "23", "label": "Button 'Plus'"},
+        {"id": "24", "label": "Button 'Equals'"},
+        {"id": "26", "label": "Button 'One'"},
+        {"id": "27", "label": "Button 'Two'"},
+        {"id": "28", "label": "Button 'Three'"},
+        {"id": "30", "label": "Button 'Five'"}
+      ],
+      "expect": "Button 'Three'"
+    },
+    {
+      "name": "calc-at-answer",
+      "category": "calculator",
+      "goal": "compute 5 + 3, stopping when the display shows the answer",
+      "state": "WINDOW: Calculator\nDISPLAY: 'Display is 8'\nACTIONS ALREADY TAKEN THIS EPISODE: Five, Plus, Three, Equals\nCANDIDATE ACTIONS (answer with one id from this list):\n[24] Button 'Equals'\n[28] Button 'Three'\n[30] Button 'Five'",
+      "options": [
+        {"id": "24", "label": "Button 'Equals'"},
+        {"id": "28", "label": "Button 'Three'"},
+        {"id": "30", "label": "Button 'Five'"}
+      ],
+      "expect": "__done__"
+    },
+    {
+      "name": "calc-unreachable",
+      "category": "calculator",
+      "goal": "write the current display value into a text file on the Desktop",
+      "state": "WINDOW: Calculator\nDISPLAY: 'Display is 0'\nACTIONS ALREADY TAKEN THIS EPISODE: (none)\nCANDIDATE ACTIONS (answer with one id from this list):\n[15] Button 'Clear'\n[23] Button 'Plus'\n[24] Button 'Equals'\n[26] Button 'One'\n[30] Button 'Five'",
+      "options": [
+        {"id": "15", "label": "Button 'Clear'"},
+        {"id": "23", "label": "Button 'Plus'"},
+        {"id": "24", "label": "Button 'Equals'"},
+        {"id": "26", "label": "Button 'One'"},
+        {"id": "30", "label": "Button 'Five'"}
+      ],
+      "expect": "__stuck__"
+    }
+  ]
+}

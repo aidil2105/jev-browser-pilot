@@ -1,0 +1,13 @@
+{
+  "goal": "open the article about the slide rule",
+  "state": "URL: https://en.wikipedia.org/wiki/Calculator\nTITLE: Calculator\nVISIBLE PAGE TEXT: A calculator is a machine which allows people to do math operations more easily.\nACTIONS ALREADY TAKEN THIS EPISODE: (none)\nNOTE: 200 of 447 candidates are shown; the rest were dropped by the perception cap and are not selectable.\nCANDIDATE ACTIONS (answer with one id from this list):\n[7] a 'Mechanical calculator'\n[12] a 'electronic'\n[23] a 'scientific calculators'\n[100] a 'slide rule'\n[101] a 'Slide rule scale'\n[139] a 'abacus'",
+  "options": [
+    {"id": "7", "label": "a 'Mechanical calculator'"},
+    {"id": "12", "label": "a 'electronic'"},
+    {"id": "23", "label": "a 'scientific calculators'"},
+    {"id": "100", "label": "a 'slide rule'"},
+    {"id": "101", "label": "a 'Slide rule scale'"},
+    {"id": "139", "label": "a 'abacus'"}
+  ],
+  "confidence_floor": 0.0
+}

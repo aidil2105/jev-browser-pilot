@@ -1,0 +1,7 @@
+# Normalize line endings on check-in so the repository stays LF on every platform.
+* text=auto eol=lf
+
+# Binary fixtures and images are never normalized.
+*.png binary
+*.jpg binary
+*.ico binary

@@ -1,0 +1,70 @@
+name: Live Jev lane (manual)
+
+# This lane spends money and talks to a real endpoint, so it is manual, single-job, and skipped
+# unless a TYPESAFE_API_KEY secret exists. Nothing here runs on push.
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_url:
+        description: Start URL for the chain
+        required: true
+        default: https://en.wikipedia.org/wiki/Calculator
+      task_file:
+        description: Task file to run (goal/verify pairs)
+        required: true
+        default: examples/wikipedia-chain.json
+      confidence_floor:
+        description: Escalate below this confidence
+        required: false
+        default: "0.0"
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: three hops with a real decision model
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[jev]"
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+      - name: Skip without a key
+        id: gate
+        run: |
+          if [ -z "${{ secrets.TYPESAFE_API_KEY }}" ]; then
+            echo "no TYPESAFE_API_KEY secret; skipping the live lane"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run the chain
+        if: steps.gate.outputs.run == 'true'
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          jev-pilot run \
+            --start "${{ inputs.start_url }}" \
+            --task-file "${{ inputs.task_file }}" \
+            --provider jev \
+            --confidence-floor "${{ inputs.confidence_floor }}" \
+            --headless \
+            --trace trace.jsonl \
+            --report report.html
+      - name: Upload the trace and the report
+        if: always() && steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: jev-live-trace
+          path: |
+            trace.jsonl
+            report.html
+          if-no-files-found: ignore
