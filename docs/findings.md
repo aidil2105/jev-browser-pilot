@@ -97,9 +97,34 @@ decision here costs 1.4k to 2.4k input tokens, so roughly $0.0003 per step, or a
 - No head-to-head against a frontier model driving the same live tasks through this harness. The
   bench isolates the decision; the loop comparison is not run yet.
 - No measurement of success rate over a task set, only over hops whose target was visible.
-- No attach-and-click cycle on a real desktop window yet. One dry run has been made: a live UI
-  Automation tree from Calculator, Jev choosing `Button 'Five'` at 0.96 confidence in 889 ms.
-  The calculator numbers in section 1 come from the earlier pilot this library was extracted from.
+
+## 9. A full desktop click cycle (2026-09-18)
+
+The experimental desktop surface has now completed a real episode on a real window:
+
+```
+jev-pilot run --surface desktop \
+  --aumid Microsoft.WindowsCalculator_8wekyb3d8bbwe!App \
+  --goal "compute 5 + 3 and stop when the display shows the answer" \
+  --verify "text-contains:8" --provider jev --steps 6
+```
+
+| step | pick | confidence | latency |
+|---|---|---|---|
+| 1 | `Button 'Five'` | 0.98 | 789 ms |
+| 2 | `Button 'Plus'` | 1.00 | 302 ms |
+| 3 | `Button 'Three'` | 1.00 | 299 ms |
+| 4 | `Button 'Equals'` | 0.99 | 285 ms |
+
+Reached, exit code 0, four decisions, median 300 ms, $0.000247. One click per step, delivered in
+the background, and the postcondition read from the window's own text rather than asked of the
+model.
+
+The first attempt at this failed, and the failure was mine rather than the model's: the surface's
+`text` was the first text label in the tree, which is the window title, so `text-contains:8` was
+checking the word "Calculator". The click sequence itself was correct, which the trace shows
+(`[8] Text 'Display is 8'` in the state at step 5, followed by a `done` at 0.82 confidence). Fixed
+by reporting the window's text labels joined, value-like labels first, and covered by tests.
 
 ## 8. A second real chooser on the frozen fixtures
 

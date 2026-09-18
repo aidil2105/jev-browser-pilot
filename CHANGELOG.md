@@ -48,6 +48,9 @@ First release.
   relays produce.
 - the default browser profile directory was created inside the working directory, which polluted a
   checkout. It now defaults to the system temp directory (`JEV_PILOT_PROFILE_DIR` overrides it).
+- the desktop surface reported the first text label in a window as its text, which is usually the
+  window title, so a `text-contains:` postcondition silently inspected the wrong string. It now
+  reports the window's text labels joined, value-like labels first.
 
 ### Verified before release
 

@@ -165,11 +165,11 @@ Every claim here was produced by a run, on this checkout, and the command is quo
 | the same chain through the library API | `python examples/browser_chain.py --provider jev --headless`: 3/3 hops reached |
 | the OpenAI-compatible provider against a real endpoint | `jev-pilot decide --provider openai --model cl/deepseek/deepseek-v4-flash --base-url http://127.0.0.1:20128/v1`: correct pick in 4357 ms |
 | a second chooser on the frozen fixtures | `jev-pilot bench --fixtures tests/fixtures/calc-frozen.json --chooser mock --chooser openai:cl/deepseek/deepseek-v4-flash`: mock 1/4, the chat model 3/4 with one unanswered call |
-| the desktop surface | `jev-pilot run --surface desktop --aumid Microsoft.WindowsCalculator_8wekyb3d8bbwe!App --provider jev --dry-run`: attached to a live UI Automation tree, Jev picked `Button 'Five'` at 0.96 confidence in 889 ms, nothing clicked |
+| the desktop surface | `jev-pilot run --surface desktop --aumid Microsoft.WindowsCalculator_8wekyb3d8bbwe!App --provider jev --steps 6 --verify text-contains:8`: four real clicks on a live window, display verified from the window's own text, exit code 0, $0.000247 |
 
-Not yet verified, and the docs say so where it matters: a full attach-and-click cycle on the desktop
-surface (only the dry run has run), task-set success rates, and a head-to-head loop comparison
-against a frontier model.
+Not yet verified, and the docs say so where it matters: task-set success rates, a head-to-head loop
+comparison against a frontier model, and the CI workflow itself (it has never run, because the
+repository is not on GitHub yet).
 
 ## Status
 
@@ -178,9 +178,9 @@ against a frontier model.
 ## Where things live
 
 - `src/jev_pilot/`: the library (loop, policy, perception, safety, traces, bench, CLI, surfaces).
-- `tests/`: 130 credential-free tests, plus one `live` test that drives a real headless Chrome.
-- `docs/`: architecture, perception, decisions, cookbook, findings, and parity with the wider
-  ecosystem effort.
+- `tests/`: 137 credential-free tests, plus one `live` test that drives a real headless Chrome.
+- `docs/`: architecture, perception, decisions, cookbook, findings, parity with the wider ecosystem
+  effort, and a decision log that records which calls were made by a model and which by hand.
 - `examples/`: a task file and runnable examples.
 - `.github/workflows/`: CI (credential-free) and an optional manual live lane.
 
@@ -193,6 +193,14 @@ against a frontier model.
 
 ## Log
 
+- 2026-09-18: **the desktop surface completed a real click cycle.** Four clicks on a live
+  Calculator window (Five, Plus, Three, Equals at 0.98 to 1.00 confidence), postcondition read
+  from the window's own text, reached, exit code 0, four decisions, median 300 ms, $0.000247. The
+  first attempt failed on my own bug: the surface's `text` was the window title, so a
+  `text-contains:` check on the display inspected the word "Calculator". Fixed, and covered by
+  tests. Suite: 137 tests plus one live browser test. The next-work choice, the name question and
+  the desktop-honesty question were put to a decision model in one call; the verdicts, their
+  confidences and the one question it declined to answer are in `docs/decision-log.md`.
 - 2026-09-18: `0.1.0` built. Live verification: three Wikipedia hops through the CLI with Jev
   (1454 / 297 / 295 ms, confidences 0.95 / 0.99 / 0.47, $0.00086), the same chain through the
   library API, a real OpenAI-compatible endpoint, a wheel install into a fresh venv, Python 3.9 and

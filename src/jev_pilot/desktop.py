@@ -170,10 +170,29 @@ class DesktopPilot(Surface):
 
     @staticmethod
     def _text_of(elements: List[Dict[str, Any]]) -> str:
+        """What this window says, best effort.
+
+        A native window has no document text, so the surface reports its own text labels
+        joined together. Labels that contain a digit lead, because they are usually the
+        display or a field value, which is what a postcondition is normally about. A
+        single label was wrong: it returned the window title, so a `text-contains:` check
+        on the calculator's display silently inspected the word "Calculator" instead.
+        """
+        labels: List[str] = []
+        seen = set()
         for el in elements:
-            if "text" in str(el.get("role") or "").lower() and el.get("label"):
-                return str(el["label"])
-        return ""
+            if "text" not in str(el.get("role") or "").lower():
+                continue
+            label = " ".join(str(el.get("label") or "").split())
+            if not label or label.lower() in seen:
+                continue
+            seen.add(label.lower())
+            labels.append(label)
+        if not labels:
+            return ""
+        valued = [l for l in labels if any(ch.isdigit() for ch in l)]
+        rest = [l for l in labels if l not in valued]
+        return " | ".join(valued + rest)[:400]
 
     def url(self) -> Optional[str]:
         return None
