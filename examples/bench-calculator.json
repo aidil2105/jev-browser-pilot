@@ -1,0 +1,82 @@
+{
+  "source": "Reference bench: five frozen states built from one real Windows Calculator window (standard mode), captured through a UI Automation tree. The element tables are verbatim; DISPLAY and the action history reconstruct what a live loop would have seen at that point. Run it with: jev-pilot bench --fixtures examples/bench-calculator.json --chooser jev --chooser mock --repeats 3",
+  "cases": [
+    {
+      "name": "start",
+      "category": "calculator",
+      "goal": "compute 5 + 3, stopping when the display shows the answer",
+      "state": "WINDOW: Calculator\nDISPLAY: 'Display is 0'\nACTIONS ALREADY TAKEN THIS EPISODE: (none)\nCANDIDATE ACTIONS (answer with one id from this list):\n[13] Button 'Percent'\n[16] Button 'Backspace'\n[19] Button 'Square root'\n[21] Button 'Multiply by'\n[22] Button 'Minus'\n[23] Button 'Plus'\n[24] Button 'Equals'\n[26] Button 'One'\n[27] Button 'Two'\n[28] Button 'Three'\n[30] Button 'Five'",
+      "options": [
+        {"id": "13", "label": "Button 'Percent'"},
+        {"id": "19", "label": "Button 'Square root'"},
+        {"id": "23", "label": "Button 'Plus'"},
+        {"id": "24", "label": "Button 'Equals'"},
+        {"id": "26", "label": "Button 'One'"},
+        {"id": "28", "label": "Button 'Three'"},
+        {"id": "30", "label": "Button 'Five'"}
+      ],
+      "expect": "Button 'Five'"
+    },
+    {
+      "name": "after-plus",
+      "category": "calculator",
+      "goal": "compute 5 + 3, stopping when the display shows the answer",
+      "state": "WINDOW: Calculator\nDISPLAY: 'Display is 5'\nACTIONS ALREADY TAKEN THIS EPISODE: Five, Plus\nCANDIDATE ACTIONS (answer with one id from this list):\n[19] Button 'Square root'\n[23] Button 'Plus'\n[24] Button 'Equals'\n[26] Button 'One'\n[27] Button 'Two'\n[28] Button 'Three'\n[30] Button 'Five'",
+      "options": [
+        {"id": "19", "label": "Button 'Square root'"},
+        {"id": "23", "label": "Button 'Plus'"},
+        {"id": "24", "label": "Button 'Equals'"},
+        {"id": "26", "label": "Button 'One'"},
+        {"id": "27", "label": "Button 'Two'"},
+        {"id": "28", "label": "Button 'Three'"},
+        {"id": "30", "label": "Button 'Five'"}
+      ],
+      "expect": "Button 'Three'"
+    },
+    {
+      "name": "after-three",
+      "category": "calculator",
+      "goal": "compute 5 + 3, stopping when the display shows the answer",
+      "state": "WINDOW: Calculator\nDISPLAY: 'Display is 3'\nACTIONS ALREADY TAKEN THIS EPISODE: Five, Plus, Three\nCANDIDATE ACTIONS (answer with one id from this list):\n[22] Button 'Minus'\n[23] Button 'Plus'\n[24] Button 'Equals'\n[25] Button 'Zero'\n[28] Button 'Three'\n[35] Button 'Decimal separator'",
+      "options": [
+        {"id": "22", "label": "Button 'Minus'"},
+        {"id": "23", "label": "Button 'Plus'"},
+        {"id": "24", "label": "Button 'Equals'"},
+        {"id": "25", "label": "Button 'Zero'"},
+        {"id": "28", "label": "Button 'Three'"},
+        {"id": "35", "label": "Button 'Decimal separator'"}
+      ],
+      "expect": "Button 'Equals'"
+    },
+    {
+      "name": "at-answer",
+      "category": "calculator",
+      "goal": "compute 5 + 3, stopping when the display shows the answer",
+      "state": "WINDOW: Calculator\nDISPLAY: 'Display is 8'\nACTIONS ALREADY TAKEN THIS EPISODE: Five, Plus, Three, Equals\nCANDIDATE ACTIONS (answer with one id from this list):\n[22] Button 'Minus'\n[23] Button 'Plus'\n[24] Button 'Equals'\n[26] Button 'One'\n[28] Button 'Three'\n[30] Button 'Five'",
+      "options": [
+        {"id": "22", "label": "Button 'Minus'"},
+        {"id": "23", "label": "Button 'Plus'"},
+        {"id": "24", "label": "Button 'Equals'"},
+        {"id": "26", "label": "Button 'One'"},
+        {"id": "28", "label": "Button 'Three'"},
+        {"id": "30", "label": "Button 'Five'"}
+      ],
+      "expect": "__done__"
+    },
+    {
+      "name": "unreachable",
+      "category": "calculator",
+      "goal": "write the current display value into a text file on the Desktop",
+      "state": "WINDOW: Calculator\nDISPLAY: 'Display is 0'\nACTIONS ALREADY TAKEN THIS EPISODE: (none)\nCANDIDATE ACTIONS (answer with one id from this list):\n[15] Button 'Clear'\n[16] Button 'Backspace'\n[23] Button 'Plus'\n[24] Button 'Equals'\n[26] Button 'One'\n[30] Button 'Five'",
+      "options": [
+        {"id": "15", "label": "Button 'Clear'"},
+        {"id": "16", "label": "Button 'Backspace'"},
+        {"id": "23", "label": "Button 'Plus'"},
+        {"id": "24", "label": "Button 'Equals'"},
+        {"id": "26", "label": "Button 'One'"},
+        {"id": "30", "label": "Button 'Five'"}
+      ],
+      "expect": "__stuck__"
+    }
+  ]
+}

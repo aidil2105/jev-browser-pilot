@@ -35,9 +35,19 @@ EXIT_OK, EXIT_UNREACHED, EXIT_ERROR = 0, 1, 2
 
 # ---------------------------------------------------------------- helpers
 def _chooser_kwargs(args) -> Dict[str, Any]:
+    """Endpoint flags for the chooser named by --provider.
+
+    Only the OpenAI-compatible provider takes endpoint flags. The Jev provider reads
+    `TYPESAFE_API_KEY` itself, so handing it `--api-key-env` (a flag documented for the
+    OpenAI path) silently authenticated it with the wrong key: the bench reported 15 of 15
+    calls unanswered, which is exactly what the coverage column exists to show.
+    """
+    kind = (args.provider or "").lower()
     kwargs: Dict[str, Any] = {}
-    if args.model:
+    if getattr(args, "model", None):
         kwargs["model"] = args.model
+    if kind not in ("openai", "compatible", "openai-compatible"):
+        return kwargs
     if getattr(args, "base_url", None):
         kwargs["base_url"] = args.base_url
     if getattr(args, "api_key_env", None):
@@ -91,7 +101,7 @@ def _parse_chooser_specs(specs: Sequence[str], args=None) -> Dict[str, Chooser]:
         if kind in ("mock", "keyword", "scripted"):
             kwargs: Dict[str, Any] = {}
         elif kind == "jev":
-            kwargs = {k: v for k, v in shared.items() if k == "api_key"}
+            kwargs = {}  # JevChooser reads TYPESAFE_API_KEY itself; endpoint flags are not for it
         else:
             kwargs = dict(shared)
         if model:

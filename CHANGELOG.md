@@ -27,7 +27,7 @@ First release.
 - `bench`: frozen-state comparison across choosers with accuracy, coverage, latency, token and cost
   aggregates, plus markdown rendering.
 - CLI: `run`, `decide`, `bench`, `report`, `selftest`, `version`, with documented exit codes.
-- 127 credential-free tests, one live browser test, CI on Python 3.9 to 3.13, and an optional
+- 139 credential-free tests, one live browser test, CI on Python 3.9 to 3.13, and an optional
   manual live lane.
 - Documentation: architecture, perception, decisions, cookbook, findings, parity.
 
@@ -54,7 +54,10 @@ First release.
 
 ### Verified before release
 
-- `pytest`: 130 tests, no credentials, no network; `pytest -m live`: one real headless browser run.
+- `--api-key-env`, documented for the OpenAI-compatible chooser, was also handed to the Jev chooser,
+  so a bench that mixed both authenticated Jev with the wrong key and every Jev call came back
+  unanswered. Only the OpenAI-compatible provider takes endpoint flags now.
+- `pytest`: 139 tests, no credentials, no network; `pytest -m live`: one real headless browser run.
 - Python 3.9, 3.11 and 3.13.
 - `uv build`, then install the wheel into a fresh virtual environment with no extras and run
   `jev-pilot selftest` from the installed console script.

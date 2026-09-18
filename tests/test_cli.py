@@ -94,6 +94,39 @@ def test_bench_writes_json_and_markdown(tmp_path):
     assert md.read_text(encoding="utf-8").startswith("| chooser |")
 
 
+def test_endpoint_flags_are_not_handed_to_the_jev_chooser(monkeypatch):
+    """Regression: --api-key-env (documented for the OpenAI path) leaked into the Jev chooser, so
+    it authenticated with the wrong key and every call returned no answer."""
+    import os
+    from argparse import Namespace
+
+    import pytest
+
+    from jev_pilot.cli import _chooser_kwargs, _parse_chooser_specs
+    from jev_pilot.providers import ProviderUnavailable
+
+    os.environ["SOME_OTHER_KEY"] = "not-a-typesafe-key"
+    args = Namespace(provider="jev", model=None, base_url="http://127.0.0.1:9/v1",
+                     api_key_env="SOME_OTHER_KEY", max_tokens=64, input_price=1.0,
+                     output_price=1.0)
+    assert _chooser_kwargs(args) == {}
+
+    # with no Typesafe key anywhere, the Jev chooser refuses rather than borrowing another
+    # service's key
+    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    with pytest.raises(ProviderUnavailable):
+        _parse_chooser_specs(["jev"], args)
+
+    # with one set, that is the key it uses
+    monkeypatch.setenv("TYPESAFE_API_KEY", "the-typesafe-one")
+    assert _parse_chooser_specs(["jev"], args)["jev"].api_key == "the-typesafe-one"
+
+    openai_args = Namespace(provider="openai", model="m", base_url="http://127.0.0.1:9/v1",
+                            api_key_env="SOME_OTHER_KEY", max_tokens=64, input_price=None,
+                            output_price=None)
+    assert _chooser_kwargs(openai_args)["api_key"] == "not-a-typesafe-key"
+
+
 def test_bench_passes_endpoint_flags_to_the_openai_chooser():
     """Regression: --base-url/--api-key-env were ignored by bench, so the openai chooser
     could not be built there at all. Port 9 refuses the connection, which is enough to

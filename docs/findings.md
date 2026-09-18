@@ -5,34 +5,47 @@ here is a vendor claim reproduced as fact.
 
 ## 1. The decide step is where the seconds are (frozen-state bench)
 
-One real Windows Calculator window was captured through a UI Automation tree (39 actionable
-elements), frozen to a fixture, and five states were built from it: start, after `Five + Plus`,
-after `Five + Plus + Three`, at the answer, and one goal no element in the table can serve. Every
-chooser saw a byte-identical state string. No capture, no actuation, so the latency is the decision
-alone.
+Five states were built from one real Windows Calculator window captured through a UI Automation
+tree: start, after `Five + Plus`, after `Five + Plus + Three`, at the answer, and one goal no
+element in the table can serve. The element tables are verbatim; the display value and the action
+history reconstruct what a live loop would have seen. Every chooser got a byte-identical state, and
+there is no capture and no actuation involved, so the latency is the decision alone.
 
-| chooser | correct | median | range | tokens in |
+```
+jev-pilot bench --fixtures examples/bench-calculator.json \
+  --chooser jev --chooser mock --chooser openai:<a chat model> --repeats 3
+```
+
+| chooser | correct | accuracy | answered | median | range | in tokens | cost |
+|---|---|---|---|---|---|---|---|
+| `jev` | 15/15 | 100% | 15/15 | 349 ms | 277 to 870 ms | 9,354 | $0.000393 |
+| `openai`, a mid-tier chat model | 12/15 | 80% | 12/15 | 2,858 ms | 4 to 15,328 ms | 3,840 | not metered |
+| `mock`, keyword overlap | 3/15 | 20% | 15/15 | 0 ms | 0 ms | 0 | free |
+
+Per state, the `jev` pick and its confidence (first repeat of each):
+
+| state | expected | `jev` picked | confidence | latency |
 |---|---|---|---|---|
-| Jev | 15/15 | 350 ms | 258 to 812 ms | 20,892 |
-| a mid-tier chat model | 7/10 | 3,536 ms | 1,357 to 21,757 ms | 5,200 |
-| a smaller free model | 5/10 | 7,318 ms | 1,225 to 23,778 ms | 6,148 |
+| start | `Button 'Five'` | `Button 'Five'` | 0.99 | 870 ms |
+| after-plus | `Button 'Three'` | `Button 'Three'` | 1.00 | 810 ms |
+| after-three | `Button 'Equals'` | `Button 'Equals'` | 0.93 | 727 ms |
+| at-answer | `__done__` | done | 0.78 | 735 ms |
+| unreachable | `__stuck__` | stuck | 0.99 | 845 ms |
 
-Cost of the whole Jev arm: $0.000877.
+What to take from it, and what not to:
 
-Caveats, all of them material:
-
-- the two chat models ran through a local relay whose failures were transport, not judgment
-  (an upstream 402 masked as a 503, and empty completions when the token cap was eaten by
-  reasoning tokens). The mid-tier model was 7/7 correct on the calls it managed to answer; its
-  other three calls returned nowhere. Read the table as latency and coverage, not as accuracy;
-- the decision is small (39 labeled elements, no screenshots, no tool schemas). A heavier decision
-  costs more for every chooser, so the ratio is not a constant;
-- the same hop in a later run scored differently (see the confidence note below), which is why the
-  repeats are reported rather than a single number.
-
-The Jev arm's telling detail: on the goal nothing could serve, it answered `__stuck__` all three
-times at 0.46 to 0.53 confidence, while the other choosers used the same state to pick a
-plausible-looking wrong element or to declare the goal done.
+- the chat model's three misses are **not wrong answers**. All three are the same transport failure
+  on the `unreachable` state (a relay 503 with an empty body, which is what a reasoning model
+  produces when its token budget is spent on reasoning). Its accuracy on the calls it answered is
+  12/12. The honest comparison here is latency and coverage, not judgment;
+- `jev` never returned an error, never picked wrong, and its confidence splits in the shape a router
+  needs: 0.93 to 1.00 on the four mechanical states, 0.78 on the one that depends on reading a
+  display rather than matching a word;
+- `mock` passes only the state whose answer is not a click at all, which is what a naive keyword
+  overlap should do. It is a fixture for offline work, not a baseline to beat;
+- this is five states, three repeats. It is enough to check the harness and to see the shape of the
+  cost and latency difference. It is not enough to rank models, and nothing here justifies a general
+  claim about any chooser's accuracy.
 
 ## 2. Three hops on a live site, through this library's CLI
 
@@ -98,7 +111,7 @@ decision here costs 1.4k to 2.4k input tokens, so roughly $0.0003 per step, or a
   bench isolates the decision; the loop comparison is not run yet.
 - No measurement of success rate over a task set, only over hops whose target was visible.
 
-## 9. A full desktop click cycle (2026-09-18)
+## 8. A full desktop click cycle (2026-09-18)
 
 The experimental desktop surface has now completed a real episode on a real window:
 
@@ -125,25 +138,4 @@ The first attempt at this failed, and the failure was mine rather than the model
 checking the word "Calculator". The click sequence itself was correct, which the trace shows
 (`[8] Text 'Display is 8'` in the state at step 5, followed by a `done` at 0.82 confidence). Fixed
 by reporting the window's text labels joined, value-like labels first, and covered by tests.
-
-## 8. A second real chooser on the frozen fixtures
-
-The shipped fixture (`tests/fixtures/calc-frozen.json`, four states) run through two choosers:
-
-```
-jev-pilot bench --fixtures tests/fixtures/calc-frozen.json \
-  --chooser mock --chooser openai:cl/deepseek/deepseek-v4-flash \
-  --base-url http://127.0.0.1:20128/v1 --api-key-env NINE_ROUTER_API_KEY
-```
-
-| chooser | correct | accuracy | answered | median | range |
-|---|---|---|---|---|---|
-| mock (keyword overlap) | 1/4 | 25% | 4/4 | 0 ms | 0 to 0 ms |
-| a mid-tier chat model | 3/4 | 75% | 3/4 | 3991 ms | 3575 to 22067 ms |
-
-Read this as a sanity check on the fixture and the harness rather than as a model comparison: four
-states is far too small to rank anything, the keyword chooser is deliberately naive (it fails the
-states whose answer is not in the goal's words), and the chat model's single unanswered call is a
-transport failure, not a wrong answer. What it does show is that the same frozen states can be
-replayed across choosers with honest accounting of coverage next to accuracy.
 
