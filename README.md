@@ -393,6 +393,7 @@ yourself.
 | the desktop path is covered without a window | `tests/test_desktop_loop.py` drives a scripted driver through a full episode: observe, pick, click by element token, verify from the window's own text |
 | the frozen-state bench | the table above, `examples/bench-calculator.json`, three repeats per chooser |
 | the same tasks against a second chooser | the table above: 6 of 6 tasks reached against 4 of 6, two passes each |
+| the manual live lane runs on a GitHub runner | `live-jev.yml`, dispatched by hand with the API key as a repository secret: three hops, 277 / 124 / 127 ms, $0.00086 |
 
 Still not verified, and said plainly rather than buried: a success rate over a task set larger
 than three, and any comparison that would support a claim about judgment rather than reliability

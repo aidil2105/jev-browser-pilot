@@ -63,5 +63,17 @@ jobs:
         with:
           enable-cache: false
 
+      - name: is this project on PyPI yet?
+        continue-on-error: true
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' https://pypi.org/pypi/jev-browser-pilot/json)
+          if [ "$code" = "404" ]; then
+            echo "::warning::jev-browser-pilot is not on PyPI yet. The publish step below will fail"
+            echo "::warning::with invalid-publisher until the one-time trusted publisher entry exists."
+            echo "::warning::See docs/publishing.md, section: one-time setup on PyPI."
+          else
+            echo "PyPI knows this project (HTTP $code); the publish step should be able to upload."
+          fi
+
       - name: publish
         run: uv publish --trusted-publishing always

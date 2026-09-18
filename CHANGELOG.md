@@ -15,6 +15,9 @@ All notable changes to this project. Format follows Keep a Changelog; versioning
   two passes per chooser, with the coverage difference stated next to the latency difference.
 - `examples/bench-calculator.json`: the reference fixture behind the README's benchmark table, so
   those numbers can be reproduced from the repository instead of quoted.
+- The manual live lane was dispatched once on a GitHub runner with the key as a repository secret,
+  and reached all three hops (277 / 124 / 127 ms, $0.00086), so the lane is known to work instead of
+  merely being configured.
 - 147 credential-free tests (139 before this release).
 
 ### Changed
