@@ -71,11 +71,27 @@ def _normalize(text: str) -> str:
 
 
 def expected_match(fixture: Fixture, outcome: str, pick: Optional[str], label: Optional[str]) -> bool:
+    """Whether a decision answers the case.
+
+    `expect` is one of three things, checked in this order:
+
+    - a sentinel, `__done__` or `__stuck__`: the outcome must match;
+    - `id:<id>`: the decision must be an `act` on exactly that id;
+    - otherwise a label: the decision must be an `act` whose label matches, case- and
+      quote-insensitively.
+
+    A bare `expect` that happens to be one of the fixture's own option ids is treated as an id too.
+    Without that, a fixture written with ids and no `id:` prefix compares an id against a label and
+    reports a perfect run as a total miss, which is what happened the first time this fixture shape
+    was used.
+    """
     expect = fixture.expect.strip()
     if expect in (DONE, STUCK):
         return outcome == ("done" if expect == DONE else "stuck")
     if expect.startswith("id:"):
         return outcome == "act" and str(pick) == expect[3:].strip()
+    if any(str(option.id) == expect for option in fixture.options):
+        return outcome == "act" and str(pick) == expect
     return outcome == "act" and _normalize(label or "") == _normalize(expect)
 
 

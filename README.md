@@ -318,14 +318,57 @@ answer.
 ]}
 ```
 
-`expect` is a label, an `id:`, or a sentinel (`__done__`, `__stuck__`). The report gives you
-accuracy next to **coverage**, because a chooser that answers 6 of 10 calls and gets them right is
-not the same as one that answers all 10.
+`expect` is a label, an `id:` value, or a sentinel (`__done__`, `__stuck__`). A bare value that
+happens to match one of the fixture's own option ids is read as an id as well, because a fixture
+written with ids and scored against labels reports a perfect run as a total miss. The report gives
+you accuracy next to **coverage**, because a chooser that answers 6 of 10 calls and gets them right
+is not the same as one that answers all 10.
 
 ```
 jev-pilot bench --fixtures examples/bench-calculator.json --chooser jev --repeats 3 \
                 --markdown bench.md --out bench.json
 ```
+
+### A larger set: 27 frozen states from real pages
+
+The five states above come from one window, and a set built to one shape flatters whatever fits it.
+This one is built to the pages: 27 frozen states from eight live Wikipedia articles, each paired with
+a goal, plus two abstention shapes on every page (the goal is already satisfied, and the goal cannot
+be reached from here).
+
+Nothing in it comes from a model's answer. `scripts/capture-bench.py` reads each candidate's link
+target out of the DOM, which the harness knows and the chooser never sees, and sets the case's answer
+to the element whose link leads to the article the goal names. Where a page links the same article
+twice, the extra links are dropped so there is exactly one right answer.
+
+```
+python scripts/capture-bench.py --out examples/bench-decisions.json
+python scripts/audit-bench.py            # every expect is a sentinel, an id:, or a label
+python scripts/bench-breakdown.py report.json   # picks against abstentions
+```
+
+| chooser | correct | picks | abstentions | answered | median | cost |
+|---|---|---|---|---|---|---|
+| `jev` | **25/27 (93%)** | 9/11 | **16/16** | 27/27 | 316 ms | $0.0070 |
+| qwen3-30b-a3b-instruct (open weights) | 10/27 (37%) | **10/11** | 0/16 | 27/27 | 1,339 ms | about $0.01 |
+| llama-3.1-8b-instruct (open weights) | 9/27 (33%) | 9/11 | 0/16 | 27/27 | 1,146 ms | about $0.01 |
+
+Read the columns, not the totals. On picking, the three are indistinguishable: the open models found
+the named article as often as Jev did, one of them marginally more often. The whole difference is
+abstention. Given a state where the goal is already satisfied, or one where no candidate can reach
+it, both open models chose something to click every single time, 32 out of 32, where Jev answered
+`done` or `stuck` every single time. For a layer whose job is to keep a wrong answer from being
+executed, that is the column that decides whether it is worth having.
+
+Jev's two misses are name matching rather than navigation: an article titled *Richard Delamaine*
+linked as *Richard Delamain*, and the article *Logarithm* linked as "logarithmic". When the goal's
+words are absent from the label it can pick the wrong link, or judge the page stuck.
+
+Scope: eight pages from one site family, one repeat, three choosers. The two open arms are paid at
+their cheap rates, about a cent an arm, because OpenRouter's free tier rate-limited the same models
+(`429 free-models-per-day-high-balance`) and the local relay answered 26 of 27 calls with
+`503 empty response content`. Those coverage failures are recorded in `docs/findings.md` section 10
+rather than quietly dropped.
 
 ### The same tasks, two choosers, twice each
 
@@ -408,7 +451,7 @@ yourself.
 
 | claim | evidence |
 |---|---|
-| the loop, policy and surfaces work | `pytest`: 147 passed, no credentials, no network |
+| the loop, policy and surfaces work | `pytest`: 171 passed, no credentials, no network |
 | the browser surface drives a real browser | `pytest -m live`: launches headless Chrome against a local fixture page and reaches its postcondition |
 | the package installs and runs as a package | `uv build`, then install the wheel into a fresh venv with no extras: `jev-pilot selftest` prints PASS |
 | the release lane publishes | `0.1.1` was uploaded by `.github/workflows/publish.yml` through PyPI trusted publishing, and `pip install jev-browser-pilot` in a clean venv pulls it: `jev-pilot version` reports 0.1.1 and `selftest` prints PASS |
@@ -417,16 +460,18 @@ yourself.
 | the same chain through the library API | `python examples/browser_chain.py --provider jev --headless`: 3 of 3 hops reached |
 | a real OpenAI-compatible endpoint | `jev-pilot decide --provider openai --model <a chat model> --file examples/decide-request.json` against a local OpenAI-compatible relay: correct pick in 4357 ms |
 | the desktop surface, clicking | `jev-pilot run --surface desktop --aumid Microsoft.WindowsCalculator_8wekyb3d8bbwe!App --provider jev --steps 6 --verify text-contains:8`: four real clicks, display verified from the window's own text, exit code 0, $0.000247 |
+| a second real desktop application | `jev-pilot run --surface desktop --attach-pid <explorer pid> --task-file examples/desktop-explorer.json`: two navigations in a File Explorer window (163 elements, list and tree items), both verified from the file names in the window, $0.000525 |
 | the desktop path is covered without a window | `tests/test_desktop_loop.py` drives a scripted driver through a full episode: observe, pick, click by element token, verify from the window's own text |
 | the frozen-state bench | the table above, `examples/bench-calculator.json`, three repeats per chooser |
+| a 27-state bench from real pages, two open-weights arms | `examples/bench-decisions.json`: Jev 25/27 (16/16 abstentions), the open arms 10/27 and 9/27 (0/16 abstentions), all three with full coverage. `docs/evidence/bench-decisions/` |
 | the same tasks against a second chooser | the table above: 6 of 6 tasks reached against 4 of 6, two passes each |
 | the manual live lane runs on a GitHub runner | `live-jev.yml`, dispatched by hand with the API key as a repository secret: three hops, 277 / 124 / 127 ms, $0.00086 |
 | an agent can borrow the decision step | `hermes plugins doctor jev-decide` passes, and a live agent run called `jev_decide` through ordinary tool dispatch, receiving `act` with a pick. `docs/hermes-tool.md` |
 
-Still not verified, and said plainly rather than buried: a success rate over a task set larger
-than three, and any comparison that would support a claim about judgment rather than reliability
-(the note above explains why the loop comparison does not support one). The desktop surface has
-had one real episode, in one application, on one platform; issue #2 is that gap.
+Still not verified, and said plainly rather than buried: any comparison that would support a claim
+about judgment rather than abstention and reliability, a bench over more than one site family and one
+repeat, and any platform other than Windows for the desktop surface. That surface has now driven two
+real applications, one episode each.
 
 ## Requirements
 
@@ -447,7 +492,7 @@ rather than in this file.
 ## Where things live
 
 - `src/jev_pilot/`: the library (loop, policy, perception, safety, traces, bench, CLI, surfaces).
-- `tests/`: 147 credential-free tests, plus one `live` test that drives a real headless Chrome.
+- `tests/`: 171 credential-free tests, plus one `live` test that drives a real headless Chrome.
 - `docs/`: architecture, perception, decisions, cookbook, findings, parity with the wider ecosystem
   effort, publishing, evidence for the quoted runs, and a decision log that records which calls were
   made by a model and which by hand.

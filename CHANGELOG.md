@@ -2,6 +2,46 @@
 
 All notable changes to this project. Format follows Keep a Changelog; versioning follows SemVer.
 
+## [0.2.0] - 2026-09-18
+
+### Added
+
+- **A Hermes plugin** at `hermes-plugin/jev-decide/`: one tool, `jev_decide`, that hands a candidate
+  list to the decision policy and returns one typed answer. Fail-closed by construction (a transport
+  failure is an error with a null pick, never a guess), hidden from the model when the CLI cannot be
+  resolved, and documented in `docs/hermes-tool.md` with the loop, the candidate-enumeration snippet
+  and the outcome table.
+- **A reference decision bench** captured from real pages: `examples/bench-decisions.json`, 27 states
+  from 8 Wikipedia articles, each with a goal and two abstention shapes. Expected answers are derived
+  from link targets in the DOM by `scripts/capture-bench.py`, never from a model's pick, and the
+  chooser never sees those targets.
+- `scripts/audit-bench.py`: checks a fixture's internal consistency (every `expect` is a sentinel, an
+  `id:` value or an option label; every `expect_label` relates to its goal).
+- `scripts/bench-breakdown.py`: per-category accuracy, picks against abstentions.
+- `Element.url`: a DOM capture keeps each candidate's link target harness-side. Absent from `label()`
+  and `as_dict()`, so it cannot leak into a state; covered by a test.
+- The desktop surface can attach by pid alone: it resolves the window id the driver requires.
+- 171 credential-free tests (147 before this release).
+- `examples/desktop-explorer.json`: a second real desktop fixture, two navigations in a File Explorer
+  window.
+
+### Fixed
+
+- The desktop surface turned a plain-text driver refusal into a `JSONDecodeError` traceback, losing
+  the driver's own message. Refusals are reported with their text now, and a UTF-8 BOM on stdout is
+  stripped, since `json.loads` rejects one outright.
+- `bench` compared an `expect` value against a label unless it was a sentinel or `id:`-prefixed, so a
+  fixture written with bare ids reported a run where every pick was correct as a total miss. A bare
+  value that matches one of the fixture's own option ids is now read as an id.
+- The desktop surface's window text included only text roles, so a file list was invisible to a
+  postcondition. Item roles (`listitem`, `treeitem`, `dataitem`) are included now; menu chrome is
+  still excluded.
+
+### Changed
+
+- The window text of a native surface reports item labels, so a file list, a tree or a table can be
+  verified, not just a display value.
+
 ## [0.1.2] - 2026-09-18
 
 ### Fixed

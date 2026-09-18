@@ -28,6 +28,20 @@ Two edits, both noted here rather than hidden: the relay's base URL is replaced 
 `<local OpenAI-compatible relay>`, and line endings are normalised. Nothing else is changed, and
 the failures are left in, including the two that ended the run with exit code 1.
 
+## `bench-decisions/`
+
+The *frozen-state* bench from the same README section: 27 states captured from eight live Wikipedia
+pages (`examples/bench-decisions.json`), replayed against three choosers.
+
+| file | arms | what it shows |
+|---|---|---|
+| `run-a-jev-and-relay.md` | Jev, and the local relay's free model | Jev 25/27 with full coverage; the relay answered 1 of 27 (26 × `503 empty response content`) |
+| `run-b-two-open-weights.md` | qwen3-30b-a3b-instruct, llama-3.1-8b-instruct | both answer all 27, and neither abstains once: 0/16 |
+
+The relay row is kept because a coverage failure is a result: it is why the reported open arms are
+paid at their cheap rates rather than free. Only line endings are normalised here; the error text is
+the endpoints' own.
+
 Those two failures are transport failures, not wrong picks: the relay answered with an empty
 response after about 30 s and 52 s. The element the model chose was the same element Jev chose in
 every case where it answered at all.

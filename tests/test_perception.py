@@ -27,6 +27,37 @@ def test_options_carry_ids_and_labels():
     assert options[0].label == "Button 'Plus'"
 
 
+def test_a_link_target_is_kept_harness_side_and_never_reaches_the_chooser():
+    """The harness may know where a link goes; the chooser must not.
+
+    The bench derives its expected answers from these targets, so if they leaked into the state the
+    task would become trivial and the bench would measure nothing.
+    """
+    from jev_pilot.serialize import build_state
+
+    payload = {
+        "url": "https://example.test/start", "title": "Start", "text": "pick something",
+        "elements": [
+            {"index": 0, "tag": "a", "role": "", "text": "the target page",
+             "url": "https://example.test/marker-target-xyz"},
+            {"index": 1, "tag": "a", "role": "", "text": "another page",
+             "url": "https://example.test/other"},
+        ],
+    }
+    snapshot = parse_snapshot(payload)
+    assert snapshot.elements[0].url == "https://example.test/marker-target-xyz"
+    assert "marker-target-xyz" not in snapshot.elements[0].label()
+    assert "url" not in snapshot.elements[0].as_dict()
+
+    state = build_state(options=options_from_elements(snapshot.elements), url=snapshot.url,
+                        title=snapshot.title, text=snapshot.text)
+    assert "marker-target-xyz" not in state
+    assert "the target page" in state          # the label is what the chooser gets
+
+    # a native window has no URLs, and an absent one must not become the string "None"
+    assert parse_snapshot({"elements": [{"index": 0, "text": "x"}]}).elements[0].url == ""
+
+
 def test_parse_snapshot_normalises_and_detects_truncation():
     payload = {
         "url": "https://example.test/",

@@ -144,3 +144,72 @@ def test_kill_is_explicit_and_off_by_default():
     assert driver.killed is False
     driver.kill()
     assert driver.killed is True
+
+
+# --- driver plumbing, the two failures a real Explorer window exposed -------------------
+
+
+class PidAttachDriver(DesktopPilot):
+    """A driver that demands a window id, the way cua-driver 0.28 does."""
+
+    def __init__(self, windows, **kwargs):
+        super().__init__(driver="fake-driver", attach_pid=4242, **kwargs)
+        self.windows = windows
+        self.calls = []
+
+    def call(self, tool, args, timeout=120.0):
+        self.calls.append((tool, dict(args)))
+        if tool == "list_windows":
+            return {"windows": self.windows}
+        if tool == "get_window_state":
+            if "window_id" not in args:
+                return {"isError": True, "returncode": 2,
+                        "raw": "Missing required integer field window_id. Use `list_windows`."}
+            return {"structuredContent": {
+                "window_id": args["window_id"], "window_title": "jev-browser-pilot - File Explorer",
+                "total_element_count": 2,
+                "elements": [{"element_index": 0, "role": "Text", "label": "docs"},
+                             {"element_index": 1, "role": "ListItem", "label": "hermes-tool.md"}]}}
+        return {"isError": True, "raw": f"unexpected tool {tool}"}
+
+
+def test_attaching_by_pid_resolves_the_window_id_the_driver_requires():
+    driver = PidAttachDriver([{"title": "Other", "pid": 9, "window_id": 1},
+                              {"title": "Explorer", "pid": 4242, "window_id": 9001}])
+    snapshot = driver.observe()
+    assert driver.window_id == 9001
+    assert snapshot.title == "jev-browser-pilot - File Explorer"
+    assert any(el.name == "docs" for el in snapshot.elements)
+    state_args = [args for tool, args in driver.calls if tool == "get_window_state"][-1]
+    assert state_args["window_id"] == 9001
+
+
+def test_a_plain_text_driver_refusal_is_reported_not_raised(monkeypatch):
+    """Regression: a driver sentence went through a strict json.loads and raised a traceback."""
+    from jev_pilot import desktop as desktop_module
+
+    class Completed:
+        returncode = 2
+        stdout = "Missing required integer field window_id. Use `list_windows` to enumerate.\n"
+        stderr = ""
+
+    monkeypatch.setattr(desktop_module.subprocess, "run", lambda *a, **k: Completed())
+    driver = DesktopPilot(driver="not-a-real-driver", attach_pid=4242)
+
+    result = driver.call("get_window_state", {"pid": 4242})
+    assert result["isError"] is True
+    assert "window_id" in result["raw"]
+
+    with pytest.raises(DriverUnavailable) as excinfo:
+        driver.observe()
+    assert "window_id" in str(excinfo.value)
+
+
+def test_the_tolerant_parser_handles_the_shapes_the_driver_is_known_to_emit():
+    from jev_pilot.desktop import _tolerant_json
+
+    assert _tolerant_json('{"a": 1}') == {"a": 1}
+    assert _tolerant_json('{"a": 1}\n{"b": 2}') == {"a": 1}      # concatenated bodies
+    assert _tolerant_json('\ufeff{"a": 1}') == {"a": 1}          # a BOM
+    assert _tolerant_json("a human sentence, not JSON") is None
+    assert _tolerant_json("") is None

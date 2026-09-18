@@ -30,6 +30,28 @@ def test_expected_match_on_sentinels():
     assert expected_match(done_case, "act", "24", "Button 'Equals'") is False
 
 
+def test_a_bare_option_id_is_read_as_an_id_not_a_label():
+    """Regression: a captured fixture used bare ids against a label-comparing bench, so a run where
+    every pick was right was reported as a total miss."""
+    from jev_pilot.bench import Fixture
+    from jev_pilot.types import Option
+
+    options = [Option(id="100", label="a 'slide rule'"), Option(id="5", label="a 'abacus'")]
+    bare = Fixture(name="c", goal="open the slide rule article", state="s", options=options,
+                   expect="100")
+    assert expected_match(bare, "act", "100", "a 'slide rule'") is True
+    assert expected_match(bare, "act", "5", "a 'abacus'") is False
+
+    prefixed = Fixture(name="c", goal="g", state="s", options=options, expect="id:100")
+    assert expected_match(prefixed, "act", "100", "a 'slide rule'") is True
+    assert expected_match(prefixed, "escalate", "100", "a 'slide rule'") is False
+
+    # a label form keeps working, and an id that is not an option is still read as a label
+    labelled = Fixture(name="c", goal="g", state="s", options=options, expect="a 'slide rule'")
+    assert expected_match(labelled, "act", "100", "a 'slide rule'") is True
+    assert expected_match(labelled, "act", "7", "something else") is False
+
+
 def test_run_bench_aggregates_two_choosers():
     cases = load_fixtures(str(FIXTURES))[:2]
     choosers = {"right": ScriptedChooser(["30", "28"]), "wrong": ScriptedChooser(["13"])}

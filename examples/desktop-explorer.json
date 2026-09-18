@@ -1,0 +1,14 @@
+{
+  "tasks": [
+    {
+      "goal": "open the docs folder in this window",
+      "verify": ["text-contains:hermes-tool.md"],
+      "steps": 3
+    },
+    {
+      "goal": "open the evidence folder, which is inside docs",
+      "verify": ["text-contains:live-comparison"],
+      "steps": 3
+    }
+  ]
+}

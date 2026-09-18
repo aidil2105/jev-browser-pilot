@@ -36,6 +36,29 @@ class DriverUnavailable(RuntimeError):
     pass
 
 
+def _tolerant_json(text: str) -> Optional[Any]:
+    """Parse the driver's reply: plain JSON, or the first JSON value in noise. None if neither.
+
+    The driver prints a human sentence when it refuses a call, so a strict decode here used to turn
+    a clear message into a JSONDecodeError traceback.
+    """
+    if not text:
+        return None
+    # A UTF-8 BOM on stdout is common on Windows and json.loads rejects it outright.
+    text = text.lstrip("\ufeff \t\r\n")
+    if not text:
+        return None
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    try:
+        value, _ = json.JSONDecoder().raw_decode(text)
+        return value
+    except json.JSONDecodeError:
+        return None
+
+
 def find_driver(explicit: Optional[str] = None) -> str:
     if explicit:
         return explicit
@@ -92,14 +115,41 @@ class DesktopPilot(Surface):
             capture_output=True, text=True, timeout=timeout,
         )
         text = (proc.stdout or proc.stderr or "").strip()
-        try:
-            payload = json.loads(text)
-        except json.JSONDecodeError:
-            if json.JSONDecoder().raw_decode(text.lstrip() if text else "{}"):
-                payload = json.JSONDecoder().raw_decode(text.lstrip())[0]
-            else:
-                return {"isError": True, "raw": text[:500], "returncode": proc.returncode}
+        payload = _tolerant_json(text)
+        if payload is None:
+            # The driver refused or crashed and said why in plain text. Report it: raising here
+            # turned "Missing required integer field window_id" into a JSONDecodeError traceback.
+            return {"isError": True, "raw": text[:500], "returncode": proc.returncode}
         return payload if isinstance(payload, dict) else {"isError": True, "raw": text[:500]}
+
+    def _window_for_pid(self) -> Optional[int]:
+        """The driver wants a numeric window id; find this process's window when nobody passed one.
+
+        Attaching by pid alone used to fail at the first observation with the driver's own
+        complaint, because the window id never came from anywhere.
+        """
+        if not self.pid:
+            return None
+        result = self.call("list_windows", {})
+        windows = result.get("windows")
+        if windows is None:
+            for key in ("data", "structuredContent"):
+                candidate = result.get(key)
+                if isinstance(candidate, dict) and candidate.get("windows"):
+                    windows = candidate["windows"]
+                    break
+                if isinstance(candidate, list):
+                    windows = candidate
+                    break
+        for window in windows or []:
+            if not isinstance(window, dict):
+                continue
+            try:
+                if int(window.get("pid") or 0) == int(self.pid) and window.get("window_id"):
+                    return int(window["window_id"])
+            except (TypeError, ValueError):
+                continue
+        return None
 
     # ---- lifecycle -----------------------------------------------------
     def start(self) -> "DesktopPilot":
@@ -121,6 +171,10 @@ class DesktopPilot(Surface):
             windows = launched.get("windows") or []
             if windows and not self.window_id:
                 self.window_id = windows[0].get("window_id")
+        if not self.window_id:
+            resolved = self._window_for_pid()
+            if resolved:
+                self.window_id = resolved
         time.sleep(self.settle_seconds)
         return self
 
@@ -142,11 +196,20 @@ class DesktopPilot(Surface):
     def observe(self) -> Snapshot:
         if self.pid is None:
             raise DriverUnavailable("desktop surface is not attached to a process; call start()")
+        if not self.window_id:
+            resolved = self._window_for_pid()
+            if resolved:
+                self.window_id = resolved
         args: Dict[str, Any] = {"pid": self.pid, "include_screenshot": False,
                                 "max_elements": self.max_elements}
         if self.window_id:
             args["window_id"] = self.window_id
         raw = self.call("get_window_state", args)
+        if raw.get("isError"):
+            raise DriverUnavailable(
+                "the desktop driver refused the observation: "
+                f"{raw.get('raw') or 'no detail'} (exit {raw.get('returncode')})"
+            )
         structured = raw.get("structuredContent") or raw
         elements = structured.get("elements") or []
         if not elements:

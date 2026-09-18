@@ -52,13 +52,20 @@ DEFAULT_SKIP_PATTERNS = (
 
 @dataclass(frozen=True)
 class Element:
-    """One addressable thing the harness could act on."""
+    """One addressable thing the harness could act on.
+
+    `url` is harness-side only: for a DOM capture it is the link target, which lets a caller derive
+    what a click should lead to without asking a model. It is deliberately absent from `label()`
+    and `as_dict()`, so a chooser never sees where a link goes. A native window has no URLs and
+    leaves it empty.
+    """
 
     id: str
     role: str
     name: str
     value: Optional[str] = None
     enabled: bool = True
+    url: str = ""
 
     @property
     def clean_name(self) -> str:
@@ -163,6 +170,7 @@ def parse_snapshot(payload: Dict[str, Any], rules: Optional[DomRules] = None) ->
             name=name,
             value=item.get("value"),
             enabled=bool(item.get("enabled", not item.get("disabled", False))),
+            url=str(item.get("url") or ""),
         ))
     return Snapshot(
         url=payload.get("url"),
@@ -238,7 +246,8 @@ _SERIALIZE_JS_TEMPLATE = r"""
       role: el.getAttribute('role') || '',
       text: text.slice(0, MAX_TEXT),
       value: (el.value || '').toString().slice(0, MAX_TEXT) || null,
-      enabled: !el.disabled
+      enabled: !el.disabled,
+      url: el.getAttribute('href') || ''
     });
   }
 
