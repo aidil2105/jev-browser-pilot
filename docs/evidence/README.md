@@ -37,6 +37,7 @@ pages (`examples/bench-decisions.json`), replayed against three choosers.
 |---|---|---|
 | `run-a-jev-and-relay.md` | Jev, and the local relay's free model | Jev 25/27 with full coverage; the relay answered 1 of 27 (26 × `503 empty response content`) |
 | `run-b-two-open-weights.md` | qwen3-30b-a3b-instruct, llama-3.1-8b-instruct | both answer all 27, and neither abstains once: 0/16 |
+| `endpoint-failures.txt` | the endpoints that could not serve the bench | per-chooser error counts and verbatim messages: the OpenRouter free tier's `429` with its daily cap and reset time, and the relay's `503` |
 
 The relay row is kept because a coverage failure is a result: it is why the reported open arms are
 paid at their cheap rates rather than free. Only line endings are normalised here; the error text is

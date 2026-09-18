@@ -1,0 +1,27 @@
+Transport failures from the endpoints that could not serve the 27-state bench.
+
+Kept because a coverage failure is a result: it is why the open-weights arms reported in the
+README are paid at their cheap rates (about a cent an arm) rather than free. Counts are per
+chooser over the 27 cases, taken from the bench reports' own error fields. Messages are
+verbatim apart from collapsing the relay's per-call '(reset after Ns)' suffix.
+
+== OpenRouter free tier, the aborted attempt (scratch/bench-decisions.json)
+
+-- openai:deepseek/deepseek-v4-flash-0731:free   (12 of 27 calls returned no answer)
+   15x (answered)
+   11x no id in the answer: ''
+    1x unknown option id
+
+-- openai:qwen/qwen3.8-27b:free   (27 of 27 calls returned no answer)
+   27x HTTP 429: {"error":{"message":"Rate limit exceeded: free-models-per-day-high-balance. ","code":429,"metadata":{"headers":{"X-RateLimit-Limit":"1000","X-RateLimit-Remaining":"0","X-RateLimit-Reset":"1789776000000"},"limit_source":"openrouter_free_tier_daily","remedy_hint":"Wait for the daily reset (see X-RateL
+   (the body also carries limit_source=openrouter_free_tier_daily, X-RateLimit-Limit=1000,
+    X-RateLimit-Remaining=0 and X-RateLimit-Reset=1789776000000, i.e. 2026-09-19 00:00 UTC: the
+    free tier allows 1000 requests a day and the counter was at zero)
+== Local relay, free route (scratch/bench-a.json)
+
+-- openai:cl/cline-free/muse-spark-1.3-contributor   (26 of 27 calls returned no answer)
+   26x HTTP 503: {"error":{"message":"[cline/cline-free/muse-spark-1.3-contributor] [500]: {\"error\":\"empty response content\",\"success\":false}"}}
+    1x (answered)
+
+The aborted OpenRouter attempt ran before a correctness-flag fix in the bench, so its
+accuracy numbers are quoted nowhere; only these transport errors are kept from it.

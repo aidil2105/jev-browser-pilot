@@ -366,9 +366,10 @@ words are absent from the label it can pick the wrong link, or judge the page st
 
 Scope: eight pages from one site family, one repeat, three choosers. The two open arms are paid at
 their cheap rates, about a cent an arm, because OpenRouter's free tier rate-limited the same models
-(`429 free-models-per-day-high-balance`) and the local relay answered 26 of 27 calls with
-`503 empty response content`. Those coverage failures are recorded in `docs/findings.md` section 10
-rather than quietly dropped.
+(`429 free-models-per-day-high-balance`: a 1000-request daily cap, exhausted) and the local relay
+answered 26 of 27 calls with `503 empty response content`. Those coverage failures are recorded with
+their verbatim messages in `docs/evidence/bench-decisions/endpoint-failures.txt` rather than quietly
+dropped.
 
 ### The same tasks, two choosers, twice each
 
