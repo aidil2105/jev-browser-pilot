@@ -1,5 +1,8 @@
 # jev-browser-pilot
 
+[![CI](https://github.com/aidil2105/jev-browser-pilot/actions/workflows/ci.yml/badge.svg)](https://github.com/aidil2105/jev-browser-pilot/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A bounded decision layer for browser and desktop automation. Your code observes, decides what
 can be done, executes it, and verifies the result. A decision-only model makes exactly one
 choice per step: which candidate is next.
@@ -168,10 +171,10 @@ Every claim here was produced by a run, on this checkout, and the command is quo
 | the OpenAI-compatible provider against a real endpoint | `jev-pilot decide --provider openai --model cl/deepseek/deepseek-v4-flash --base-url http://127.0.0.1:20128/v1`: correct pick in 4357 ms |
 | a second chooser on the frozen fixtures | `jev-pilot bench --fixtures tests/fixtures/calc-frozen.json --chooser mock --chooser openai:cl/deepseek/deepseek-v4-flash`: mock 1/4, the chat model 3/4 with one unanswered call |
 | the desktop surface | `jev-pilot run --surface desktop --aumid Microsoft.WindowsCalculator_8wekyb3d8bbwe!App --provider jev --steps 6 --verify text-contains:8`: four real clicks on a live window, display verified from the window's own text, exit code 0, $0.000247 |
+| CI on three platforms | GitHub Actions run on `main`: 3.9, 3.11 on Ubuntu, Windows and macOS, 3.13, and the live browser job, all green |
 
-Not yet verified, and the docs say so where it matters: task-set success rates, a head-to-head loop
-comparison against a frontier model, and the CI workflow itself (it has never run, because the
-repository is not on GitHub yet).
+Not yet verified, and the docs say so where it matters: task-set success rates, and a head-to-head
+loop comparison against a frontier model.
 
 ## Status
 
