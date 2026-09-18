@@ -94,6 +94,33 @@ def test_bench_writes_json_and_markdown(tmp_path):
     assert md.read_text(encoding="utf-8").startswith("| chooser |")
 
 
+def test_bench_artifacts_survive_a_closed_pipe(tmp_path):
+    """Regression: piping into head closed stdout, the process died while printing, and the
+    --out/--markdown files were never written at all."""
+    out = tmp_path / "bench.json"
+    md = tmp_path / "bench.md"
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "jev_pilot.cli", "bench",
+         "--fixtures", str(FIXTURES / "calc-frozen.json"), "--chooser", "mock",
+         "--out", str(out), "--markdown", str(md)],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=str(ROOT),
+        env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
+    )
+    assert proc.stdout is not None
+    proc.stdout.readline()   # read one line, then slam the pipe shut
+    proc.stdout.close()
+    stderr = proc.stderr.read() if proc.stderr else ""
+    if proc.stderr:
+        proc.stderr.close()
+    proc.wait(timeout=120)
+    returncode = proc.returncode
+
+    assert out.exists() and md.exists(), f"artifacts missing; stderr={stderr[:300]}"
+    assert json.loads(out.read_text(encoding="utf-8"))["cases"] == 4
+    assert "Traceback" not in stderr  # a closed pipe is not an error
+    assert returncode == 0, f"exit={returncode} stderr={stderr[:300]}"
+
+
 def test_endpoint_flags_are_not_handed_to_the_jev_chooser(monkeypatch):
     """Regression: --api-key-env (documented for the OpenAI path) leaked into the Jev chooser, so
     it authenticated with the wrong key and every call returned no answer."""

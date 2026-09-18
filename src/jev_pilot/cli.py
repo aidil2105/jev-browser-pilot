@@ -320,19 +320,29 @@ def cmd_bench(args) -> int:
                            f"  {r['case']:<18} {r['chooser']:<18} "
                            f"{'ok' if r['correct'] else 'MISS'} ({r['outcome']}) {r['latency_ms']}ms"))
     markdown = render_markdown(report)
-    print(markdown)
-    for name, stats in report["summary"].items():
-        if stats["errors"]:
-            print(f"note: {name} returned no answer on {stats['errors']} of {stats['decisions']} calls",
-                  file=sys.stderr)
+
+    # Write the artifacts BEFORE printing. A caller who pipes stdout into head/tail closes the
+    # pipe early, which kills this process; writing first means the files still land.
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(json.dumps(report, indent=2), encoding="utf-8")
-        print(f"wrote {args.out}")
     if args.markdown:
         Path(args.markdown).parent.mkdir(parents=True, exist_ok=True)
         Path(args.markdown).write_text(markdown + "\n", encoding="utf-8")
-        print(f"wrote {args.markdown}")
+
+    print(markdown)
+    try:
+        for name, stats in report["summary"].items():
+            if stats["errors"]:
+                print(f"note: {name} returned no answer on {stats['errors']} of "
+                      f"{stats['decisions']} calls", file=sys.stderr)
+        for path in (args.out, args.markdown):
+            if path:
+                print(f"wrote {path}")
+    except (BrokenPipeError, OSError):
+        # A caller piping stdout into head/tail closed the pipe. The artifacts are written
+        # already, so this is not a failure and deserves no traceback.
+        pass
     return EXIT_OK
 
 
