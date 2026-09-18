@@ -24,7 +24,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-jev = ["typesafe-sdk>=0.6"]
+# The Jev SDK itself needs 3.10+, so the extra is marked rather than forcing the whole
+# package to 3.10: on 3.9 the core installs and the provider reports a clear message.
+jev = ["typesafe-sdk>=0.6; python_version >= '3.10'"]
 dev = ["pytest>=7", "pytest-cov"]
 
 [project.urls]

@@ -40,11 +40,13 @@ each goal reached in a single decision: 1454 ms, 297 ms, 295 ms, $0.00086 total.
 
 ```
 pip install jev-browser-pilot              # core: browser surface over CDP
-pip install "jev-browser-pilot[jev]"       # + the TypeSafe Jev provider
+pip install "jev-browser-pilot[jev]"       # + the TypeSafe Jev provider (Python 3.10+)
 ```
 
 Python 3.9 or newer. The browser surface needs `websocket-client` (installed with the package)
-and a local Chrome, Chromium or Edge.
+and a local Chrome, Chromium or Edge. The Jev provider needs Python 3.10 or newer, because the
+vendor SDK does; on 3.9 the core, the OpenAI-compatible provider and the mock chooser all work and
+the Jev provider reports that clearly instead of failing to install.
 
 ## Quickstart
 
