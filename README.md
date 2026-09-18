@@ -22,9 +22,22 @@ milliseconds, and an audit trail that shows exactly what the model was shown at 
 
 ## Install
 
+Not on PyPI yet, so `pip install jev-browser-pilot` does not resolve. Use the repository:
+
 ```
-pip install jev-browser-pilot              # core: browser surface over CDP
-pip install "jev-browser-pilot[jev]"       # + the TypeSafe Jev provider (Python 3.10+)
+pip install "git+https://github.com/aidil2105/jev-browser-pilot"
+# with the Jev provider (Python 3.10 or newer):
+pip install "jev-browser-pilot[jev] @ git+https://github.com/aidil2105/jev-browser-pilot"
+```
+
+Or from a clone, which is what the commands below assume:
+
+```
+git clone https://github.com/aidil2105/jev-browser-pilot
+cd jev-browser-pilot
+python -m venv .venv
+.venv/Scripts/python -m pip install -e ".[dev,jev]"    # Windows
+# .venv/bin/python -m pip install -e ".[dev,jev]"      # macOS and Linux
 ```
 
 The only runtime dependency is `websocket-client`. The browser surface uses the Chrome,
